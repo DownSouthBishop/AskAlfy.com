@@ -1,0 +1,95 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const swatches = [
+	{ name: 'Linen (canvas)', hex: '#FAF5EC', class: 'bg-linen', border: true },
+	{ name: 'Card surface', hex: '#FFFDF8', class: 'bg-card', border: true },
+	{ name: 'Hairline border', hex: '#E7DFD0', class: 'bg-hairline', border: true },
+	{ name: 'Espresso (text)', hex: '#2E2A24', class: 'bg-espresso', light: true },
+	{ name: 'Secondary text', hex: '#5C554A', class: 'bg-secondary', light: true },
+	{ name: 'Muted', hex: '#8A7F6E', class: 'bg-muted', light: true },
+	{ name: 'Marigold (primary action)', hex: '#E08A2E', class: 'bg-marigold', light: true },
+	{ name: 'Fern (approval/trust only)', hex: '#4E7D68', class: 'bg-fern', light: true },
+	{ name: 'Fern tint', hex: '#EDF3EF', class: 'bg-fern-tint', border: true },
+];
+
+const typeScale = [
+	{ label: 'Display · 56px · Fraunces 600', class: 'font-display text-display font-semibold' },
+	{ label: 'H1 · 32px · Fraunces 600', class: 'font-display text-h1 font-semibold' },
+	{ label: 'H2 · 20px · Fraunces 500', class: 'font-display text-h2 font-medium' },
+	{ label: 'Body · 16px · Inter 400', class: 'font-sans text-body' },
+	{ label: 'Small · 13px · Inter 500', class: 'font-sans text-small font-medium' },
+];
+---
+
+<Layout title="Styleguide — Alfy">
+	<main class="mx-auto max-w-3xl px-6 py-16 space-y-16">
+		<header class="space-y-2">
+			<h1 class="font-display text-h1 font-semibold">Alfy styleguide</h1>
+			<p class="text-body text-secondary">Palette, type, and the two components every screen borrows from.</p>
+		</header>
+
+		<section class="space-y-4">
+			<h2 class="font-display text-h2 font-medium">Palette</h2>
+			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+				{swatches.map((s) => (
+					<div class={`rounded-xl p-4 ${s.class} ${s.border ? 'border border-hairline' : ''}`}>
+						<p class={`text-small font-medium ${s.light ? 'text-on-marigold' : 'text-espresso'}`}>{s.name}</p>
+						<p class={`text-small ${s.light ? 'text-on-marigold opacity-80' : 'text-muted'}`}>{s.hex}</p>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<section class="space-y-4">
+			<h2 class="font-display text-h2 font-medium">Type scale</h2>
+			<div class="space-y-4">
+				{typeScale.map((t) => (
+					<div class="border-b border-hairline pb-4">
+						<p class={t.class}>Everyone gets an assistant.</p>
+						<p class="text-small text-muted mt-1">{t.label}</p>
+					</div>
+				))}
+			</div>
+		</section>
+
+		<section class="space-y-4">
+			<h2 class="font-display text-h2 font-medium">Buttons</h2>
+			<div class="flex flex-wrap items-center gap-4">
+				<button class="rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold">
+					Text Alfy
+				</button>
+				<button class="rounded-full border border-hairline bg-card px-6 py-3 text-body font-medium text-espresso">
+					Learn more
+				</button>
+			</div>
+		</section>
+
+		<section class="space-y-4">
+			<h2 class="font-display text-h2 font-medium">Approval card</h2>
+			<div class="max-w-sm rounded-2xl border border-hairline bg-card p-5 space-y-4">
+				<p class="text-body text-espresso">
+					I drafted a reply to Mara about Saturday. Want me to send it?
+				</p>
+				<div class="flex gap-2">
+					<button class="flex-1 rounded-full bg-marigold px-4 py-2 text-small font-medium text-on-marigold">Send</button>
+					<button class="flex-1 rounded-full border border-hairline px-4 py-2 text-small font-medium text-espresso">Edit</button>
+					<button class="flex-1 rounded-full px-4 py-2 text-small font-medium text-muted">Skip</button>
+				</div>
+			</div>
+		</section>
+
+		<section class="space-y-4">
+			<h2 class="font-display text-h2 font-medium">Fern trust-prompt card</h2>
+			<div class="max-w-sm rounded-2xl border border-fern/20 bg-fern-tint p-5 space-y-3">
+				<p class="text-body text-espresso">
+					That's five you've approved without edits — want me to handle these from now on?
+				</p>
+				<div class="flex gap-2">
+					<button class="rounded-full bg-fern px-4 py-2 text-small font-medium text-on-marigold">Yes, handle it</button>
+					<button class="rounded-full px-4 py-2 text-small font-medium text-secondary">Not yet</button>
+				</div>
+			</div>
+		</section>
+	</main>
+</Layout>
