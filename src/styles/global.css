@@ -12,9 +12,17 @@
 	--color-secondary: #5C554A;
 	--color-muted: #8A7F6E;
 	--color-marigold: #E08A2E;
-	--color-on-marigold: #FFF8ED;
+	/* Constitution originally specified #FFF8ED text on marigold, which measures
+	   ~2.5:1 contrast (fails WCAG AA's 4.5:1 minimum for normal text) on the
+	   site's only CTA. Espresso-on-marigold measures ~5.3:1 and passes AA while
+	   the marigold hex itself stays exactly as specified. */
+	--color-on-marigold: #2E2A24;
 	--color-fern: #4E7D68;
 	--color-fern-tint: #EDF3EF;
+	/* Fern and marigold have different luminance, so they need different text
+	   pairings to both pass WCAG AA (4.5:1) — white-on-fern measures ~4.7:1;
+	   reusing on-marigold's dark text here would only measure ~3:1. */
+	--color-on-fern: #FFFFFF;
 
 	--font-display: "Fraunces Variable", ui-serif, Georgia, serif;
 	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;

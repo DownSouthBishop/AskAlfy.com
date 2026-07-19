@@ -1,9 +1,11 @@
 ---
 import AlfyConversation from './AlfyConversation.tsx';
+import QRCode from './QRCode.astro';
+import { SMS_URI } from '../lib/config';
 ---
 
 <section class="mx-auto flex min-h-[70vh] max-w-6xl items-center px-6 py-12">
-	<div class="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-16">
+	<div class="grid w-full items-start gap-12 lg:grid-cols-2 lg:gap-16">
 		<div class="space-y-6">
 			<h1 class="hero-headline font-display text-display font-semibold text-balance">
 				Everyone gets an assistant.
@@ -12,14 +14,23 @@ import AlfyConversation from './AlfyConversation.tsx';
 				Alfy handles the things you'd forget — and asks before anything sends.
 				Works on any phone that can text.
 			</p>
-			<div class="hero-fade">
+			<div class="hero-fade flex flex-wrap items-center gap-6">
 				<a
-					href="sms:+10000000000"
-					class="rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold"
+					href={SMS_URI}
+					class="cursor-pointer rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
 				>
 					Text Alfy
 				</a>
+				<div class="hidden items-center gap-3 lg:flex">
+					<QRCode />
+					<span class="max-w-[9rem] text-small text-secondary">
+						Scan to text Alfy from your phone
+					</span>
+				</div>
 			</div>
+			<p class="hero-fade text-small text-muted">
+				No app to install. Nothing sends without your OK.
+			</p>
 		</div>
 
 		<div class="hero-fade flex justify-center lg:justify-end">
@@ -35,13 +46,28 @@ import AlfyConversation from './AlfyConversation.tsx';
 	gsap.registerPlugin(SplitText);
 
 	const headline = document.querySelector('.hero-headline');
-	if (headline) {
-		const split = new SplitText(headline, { type: 'words' });
-		const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-		tl.from(split.words, { opacity: 0, y: 18, stagger: 0.04, duration: 0.6 }).from(
-			'.hero-fade',
-			{ opacity: 0, y: 12, stagger: 0.12, duration: 0.5 },
-			'-=0.25'
-		);
-	}
+	const mm = gsap.matchMedia();
+
+	mm.add(
+		{
+			motionOK: '(prefers-reduced-motion: no-preference)',
+			motionReduced: '(prefers-reduced-motion: reduce)',
+		},
+		(context) => {
+			const { motionOK } = context.conditions as { motionOK: boolean };
+
+			if (!motionOK || !headline) {
+				gsap.set('.hero-fade, .hero-headline', { opacity: 1, y: 0 });
+				return;
+			}
+
+			const split = new SplitText(headline, { type: 'words' });
+			const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+			tl.from(split.words, { opacity: 0, y: 18, stagger: 0.04, duration: 0.6 }).from(
+				'.hero-fade',
+				{ opacity: 0, y: 12, stagger: 0.12, duration: 0.5 },
+				'-=0.25'
+			);
+		}
+	);
 </script>

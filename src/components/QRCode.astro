@@ -1,0 +1,27 @@
+---
+import QRCode from 'qrcode';
+import { SMS_URI } from '../lib/config';
+
+interface Props {
+	class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Rendered to a static SVG at build time — no client JS, no third-party
+// service call, matches the $0/local-first build standard.
+const svg = await QRCode.toString(SMS_URI, {
+	type: 'svg',
+	margin: 1,
+	width: 88,
+	color: {
+		dark: '#2E2A24',
+		light: '#FFFDF8',
+	},
+});
+---
+
+<div
+	class={`inline-flex rounded-2xl border border-hairline bg-card p-3 ${className}`}
+	set:html={svg}
+/>

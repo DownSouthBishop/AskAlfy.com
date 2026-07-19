@@ -1,4 +1,6 @@
 ---
+import { SMS_URI } from '../lib/config';
+
 const year = new Date().getFullYear();
 ---
 
@@ -8,11 +10,11 @@ const year = new Date().getFullYear();
 			Ready when you are.
 		</p>
 		<a
-			href="sms:+10000000000"
-			class="inline-block rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold"
+			href={SMS_URI}
+			class="inline-block cursor-pointer rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
 		>
 			Text Alfy
 		</a>
-		<p class="text-small text-muted">© {year} Alfy</p>
+		<p class="text-small text-secondary">© {year} Alfy</p>
 	</div>
 </footer>

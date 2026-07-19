@@ -1,4 +1,6 @@
 ---
+import { SMS_URI } from '../lib/config';
+
 const steps = [
 	{
 		n: '1',
@@ -32,7 +34,7 @@ const steps = [
 		{
 			steps.map((step) => (
 				<div class="how-fade space-y-3">
-					<span class="flex h-9 w-9 items-center justify-center rounded-full bg-fern-tint font-display text-h2 font-medium text-fern">
+					<span class="flex h-9 w-9 items-center justify-center rounded-full bg-fern-tint font-display text-h2 font-semibold text-fern">
 						{step.n}
 					</span>
 					<h3 class="font-display text-h2 font-medium">{step.title}</h3>
@@ -40,6 +42,15 @@ const steps = [
 				</div>
 			))
 		}
+	</div>
+
+	<div class="how-fade mt-12 border-t border-hairline pt-8">
+		<a
+			href={SMS_URI}
+			class="cursor-pointer text-body font-medium text-fern underline decoration-fern/40 underline-offset-4 transition-colors hover:text-espresso focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern"
+		>
+			Text Alfy and see for yourself →
+		</a>
 	</div>
 </section>
 
@@ -49,15 +60,31 @@ const steps = [
 
 	gsap.registerPlugin(ScrollTrigger);
 
-	gsap.from('.how-fade', {
-		opacity: 0,
-		y: 16,
-		stagger: 0.08,
-		duration: 0.5,
-		ease: 'power2.out',
-		scrollTrigger: {
-			trigger: '.how-it-works',
-			start: 'top 75%',
+	const mm = gsap.matchMedia();
+
+	mm.add(
+		{
+			motionOK: '(prefers-reduced-motion: no-preference)',
 		},
-	});
+		(context) => {
+			const { motionOK } = context.conditions as { motionOK: boolean };
+
+			if (!motionOK) {
+				gsap.set('.how-fade', { opacity: 1, y: 0 });
+				return;
+			}
+
+			gsap.from('.how-fade', {
+				opacity: 0,
+				y: 16,
+				stagger: 0.08,
+				duration: 0.5,
+				ease: 'power2.out',
+				scrollTrigger: {
+					trigger: '.how-it-works',
+					start: 'top 75%',
+				},
+			});
+		}
+	);
 </script>

@@ -22,11 +22,17 @@ const { title = 'Alfy — just text an assistant' } = Astro.props;
 			import Lenis from 'lenis';
 			import { gsap } from 'gsap';
 
-			const lenis = new Lenis();
-			gsap.ticker.add((time) => {
-				lenis.raf(time * 1000);
-			});
-			gsap.ticker.lagSmoothing(0);
+			const prefersReducedMotion = window.matchMedia(
+				'(prefers-reduced-motion: reduce)'
+			).matches;
+
+			if (!prefersReducedMotion) {
+				const lenis = new Lenis();
+				gsap.ticker.add((time) => {
+					lenis.raf(time * 1000);
+				});
+				gsap.ticker.lagSmoothing(0);
+			}
 		</script>
 	</body>
 </html>
