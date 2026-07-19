@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import "@fontsource-variable/fraunces/wght.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+
+@theme {
+	/* Alfy palette — see /CLAUDE.md, never substitute */
+	--color-linen: #FAF5EC;
+	--color-card: #FFFDF8;
+	--color-hairline: #E7DFD0;
+	--color-espresso: #2E2A24;
+	--color-secondary: #5C554A;
+	--color-muted: #8A7F6E;
+	--color-marigold: #E08A2E;
+	--color-on-marigold: #FFF8ED;
+	--color-fern: #4E7D68;
+	--color-fern-tint: #EDF3EF;
+
+	--font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
