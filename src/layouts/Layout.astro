@@ -18,5 +18,15 @@ const { title = 'Alfy — just text an assistant' } = Astro.props;
 	</head>
 	<body class="bg-linen text-espresso font-sans antialiased">
 		<slot />
+		<script>
+			import Lenis from 'lenis';
+			import { gsap } from 'gsap';
+
+			const lenis = new Lenis();
+			gsap.ticker.add((time) => {
+				lenis.raf(time * 1000);
+			});
+			gsap.ticker.lagSmoothing(0);
+		</script>
 	</body>
 </html>

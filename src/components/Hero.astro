@@ -1,0 +1,47 @@
+---
+import AlfyConversation from './AlfyConversation.tsx';
+---
+
+<section class="mx-auto flex min-h-[calc(100vh-92px)] max-w-6xl items-center px-6 py-12">
+	<div class="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-16">
+		<div class="space-y-6">
+			<h1 class="hero-headline font-display text-display font-semibold text-balance">
+				Everyone gets an assistant.
+			</h1>
+			<p class="hero-fade max-w-md text-body text-secondary">
+				Alfy handles the things you'd forget — and asks before anything sends.
+				Works on any phone that can text.
+			</p>
+			<div class="hero-fade">
+				<a
+					href="sms:+10000000000"
+					class="rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold"
+				>
+					Text Alfy
+				</a>
+			</div>
+		</div>
+
+		<div class="hero-fade flex justify-center lg:justify-end">
+			<AlfyConversation client:load />
+		</div>
+	</div>
+</section>
+
+<script>
+	import { gsap } from 'gsap';
+	import { SplitText } from 'gsap/SplitText';
+
+	gsap.registerPlugin(SplitText);
+
+	const headline = document.querySelector('.hero-headline');
+	if (headline) {
+		const split = new SplitText(headline, { type: 'words' });
+		const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+		tl.from(split.words, { opacity: 0, y: 18, stagger: 0.04, duration: 0.6 }).from(
+			'.hero-fade',
+			{ opacity: 0, y: 12, stagger: 0.12, duration: 0.5 },
+			'-=0.25'
+		);
+	}
+</script>
