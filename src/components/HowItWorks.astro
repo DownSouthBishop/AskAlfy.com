@@ -1,0 +1,63 @@
+---
+const steps = [
+	{
+		n: '1',
+		title: 'Text it like a person',
+		body: "No app, no login. Just say what you need, the way you'd text a friend.",
+	},
+	{
+		n: '2',
+		title: 'Alfy finds what needs doing',
+		body: 'It checks the details and gets everything ready — no back-and-forth required.',
+	},
+	{
+		n: '3',
+		title: 'You approve before it sends',
+		body: "Nothing goes out without a yes from you. That's the whole deal.",
+	},
+];
+---
+
+<section class="how-it-works mx-auto max-w-6xl px-6 py-14 lg:py-16">
+	<div class="max-w-lg space-y-3">
+		<h2 class="how-fade font-display text-h1 font-semibold text-balance">
+			Alfy asks first.
+		</h2>
+		<p class="how-fade text-body text-secondary">
+			Every task follows the same three steps, and the last one is always yours.
+		</p>
+	</div>
+
+	<div class="mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
+		{
+			steps.map((step) => (
+				<div class="how-fade space-y-3">
+					<span class="flex h-9 w-9 items-center justify-center rounded-full bg-fern-tint font-display text-h2 font-medium text-fern">
+						{step.n}
+					</span>
+					<h3 class="font-display text-h2 font-medium">{step.title}</h3>
+					<p class="text-body text-secondary">{step.body}</p>
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	gsap.from('.how-fade', {
+		opacity: 0,
+		y: 16,
+		stagger: 0.08,
+		duration: 0.5,
+		ease: 'power2.out',
+		scrollTrigger: {
+			trigger: '.how-it-works',
+			start: 'top 75%',
+		},
+	});
+</script>
