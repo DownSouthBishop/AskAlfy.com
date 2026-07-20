@@ -15,6 +15,16 @@ const { title = 'Alfy — just text an assistant' } = Astro.props;
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<meta
+			name="description"
+			content="Alfy is a phone number. Text it the things you'd forget — it does the legwork and asks before anything sends. No app to install."
+		/>
+		<meta property="og:title" content={title} />
+		<meta
+			property="og:description"
+			content="Text Alfy the things you'd forget. It asks before anything sends."
+		/>
+		<meta property="og:type" content="website" />
 	</head>
 	<body class="bg-linen text-espresso font-sans antialiased">
 		<slot />
