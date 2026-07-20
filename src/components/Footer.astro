@@ -1,20 +1,41 @@
 ---
+import QRCode from './QRCode.astro';
 import { SMS_URI } from '../lib/config';
 
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-hairline">
-	<div class="mx-auto max-w-6xl px-6 py-16 text-center space-y-5">
-		<p class="font-display text-h1 font-semibold text-balance">
+<footer class="footer border-t border-hairline bg-card">
+	<div class="mx-auto max-w-6xl px-6 py-20 text-center lg:py-28">
+		<p class="footer-fade font-display text-display font-semibold text-balance">
 			Ready when you are.
 		</p>
-		<a
-			href={SMS_URI}
-			class="inline-block cursor-pointer rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
-		>
-			Text Alfy
-		</a>
-		<p class="text-small text-secondary">© {year} Alfy</p>
+		<p class="footer-fade mx-auto mt-4 max-w-md text-body text-secondary">
+			One text. No app. Nothing sends without your OK.
+		</p>
+		<div class="footer-fade mt-8 flex flex-col items-center gap-6">
+			<a
+				href={SMS_URI}
+				class="inline-block cursor-pointer rounded-full bg-marigold px-8 py-4 text-body font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+			>
+				Text Alfy
+			</a>
+			<div class="hidden items-center gap-3 lg:flex">
+				<QRCode />
+				<span class="max-w-[9rem] text-left text-small text-secondary">
+					Scan to text Alfy from your phone
+				</span>
+			</div>
+		</div>
+		<p class="mt-14 text-small text-muted">
+			<a href="/app" class="underline decoration-hairline underline-offset-4 hover:text-espresso">Peek inside</a>
+			<span class="mx-2">·</span>© {year} Alfy
+		</p>
 	</div>
 </footer>
+
+<script>
+	import { reveal } from '../lib/reveal';
+
+	reveal('.footer-fade', '.footer', { start: 'top 80%', stagger: 0.1 });
+</script>

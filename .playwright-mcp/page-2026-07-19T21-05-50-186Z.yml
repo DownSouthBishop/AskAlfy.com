@@ -1,0 +1,329 @@
+- generic [ref=f1e1]:
+  - generic:
+    - banner:
+      - link "Home" [ref=f1e2] [cursor=pointer]:
+        - /url: /
+      - generic:
+        - generic [ref=f1e7]:
+          - link "Order now":
+            - /url: /cart
+            - button "Order now" [ref=f1e10] [cursor=pointer]
+          - button "Toggle menu" [ref=f1e12] [cursor=pointer]
+        - generic:
+          - generic:
+            - link "Daylight Kids logo":
+              - /url: https://kids.daylightcomputer.com
+              - img "Daylight Kids logo"
+  - main [ref=f1e20]:
+    - generic [ref=f1e23]:
+      - img "Daylight tablet on the grass" [ref=f1e24]
+      - img "Flowers on the screen of the Daylight tablet" [ref=f1e25]
+      - generic [ref=f1e27]:
+        - generic [ref=f1e28]:
+          - heading "The computer, de-invented" [level=1] [ref=f1e29]
+          - paragraph [ref=f1e30]: Meet DC-1. A new kind of computer, designed for deep focus and wellbeing.
+        - button "Play video" [ref=f1e33] [cursor=pointer]:
+          - generic [ref=f1e34]:
+            - img "a girl sitting on a park bench with Daylight tablet in her hands" [ref=f1e35]
+            - img "Daylight video preview"
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - button "Newsletter Get updates · No spam":
+                - paragraph: Newsletter
+                - paragraph: Get updates · No spam
+            - generic:
+              - button "Newsletter Sign up for updates, guides and more resources. No spam.":
+                - heading "Newsletter" [level=3]
+                - paragraph: Sign up for updates, guides and more resources. No spam.
+              - generic:
+                - generic:
+                  - generic:
+                    - textbox "E-MAIL"
+                    - button "Subscribe"
+            - button "Close newsletter popup"
+    - generic [ref=f1e41]:
+      - generic [ref=f1e45]:
+        - paragraph [ref=f1e46]: Meet Daylight Kids
+        - paragraph [ref=f1e47]: Accessories included
+        - link "Order now ↗" [ref=f1e48] [cursor=pointer]:
+          - /url: https://kids.daylightcomputer.com
+      - link [ref=f1e50] [cursor=pointer]:
+        - /url: https://kids.daylightcomputer.com
+        - img "Daylight Kids logo" [ref=f1e51]
+    - generic [ref=f1e55]:
+      - generic [ref=f1e57]:
+        - heading "The world’s first full-speed paper-like display" [level=1] [ref=f1e61]: The world’s first full-speedpaper-like display
+        - generic [ref=f1e62]:
+          - generic [ref=f1e63]:
+            - img "60fps" [ref=f1e65]
+            - generic [ref=f1e66]:
+              - heading "Smooth interactions" [level=3] [ref=f1e67]
+              - paragraph [ref=f1e68]: Scroll, zoom, turn pages—even watch video— without any lag
+          - generic [ref=f1e69]:
+            - img "smile" [ref=f1e71]
+            - generic [ref=f1e72]:
+              - heading "A calm experience" [level=3] [ref=f1e73]
+              - paragraph [ref=f1e74]: Stay connected with yourself and what’s around you
+          - generic [ref=f1e75]:
+            - img "heart" [ref=f1e77]
+            - generic [ref=f1e78]:
+              - heading "For your health" [level=3] [ref=f1e79]
+              - paragraph [ref=f1e80]: Say goodbye to eye-strain—designed for full sunlight and nighttime
+      - generic [ref=f1e81]:
+        - generic [ref=f1e82]:
+          - heading "A distraction-free space for learning & creativity" [level=2] [ref=f1e83]
+          - paragraph [ref=f1e85]: We invented a new type of display that’s like E Ink, but faster. It looks and feels like paper, but runs at 60fps, so you can work fluidly, and use all your apps without compromise.
+        - generic [ref=f1e87]:
+          - figure [ref=f1e89]:
+            - img "Your new favorite reading app for books and documents" [ref=f1e91]
+            - generic [ref=f1e92]:
+              - paragraph [ref=f1e93]: Reading
+              - generic [ref=f1e94]: Your new favorite reading app for books and documents
+          - figure [ref=f1e96]:
+            - img "Write, draw and annotate on a fast, paper-like surface" [ref=f1e98]
+            - generic [ref=f1e99]:
+              - paragraph [ref=f1e100]: Note-taking
+              - generic [ref=f1e101]: Write, draw and annotate on a fast, paper-like surface
+          - figure [ref=f1e103]:
+            - img "A sacred space for focused writing without distraction" [ref=f1e105]
+            - generic [ref=f1e106]:
+              - paragraph [ref=f1e107]: Writing
+              - generic [ref=f1e108]: A sacred space for focused writing without distraction
+      - generic [ref=f1e109]:
+        - heading "With all the apps you need" [level=2] [ref=f1e115]
+        - paragraph [ref=f1e116]: Use all your favorite apps without the distractions—it's the best of both worlds.
+        - generic [ref=f1e117]:
+          - img "app icon" [ref=f1e119]
+          - img "app icon" [ref=f1e121]
+          - img "app icon" [ref=f1e123]
+          - img "app icon" [ref=f1e125]
+          - img "app icon" [ref=f1e127]
+          - img "app icon" [ref=f1e129]
+          - img "app icon" [ref=f1e131]
+          - img "app icon" [ref=f1e133]
+          - img "app icon" [ref=f1e135]
+      - generic [ref=f1e139]:
+        - img "vision illustration" [ref=f1e140]
+        - paragraph [ref=f1e146]: The vision for Daylight is to build a whole ecosystem of healthier, more humane computers that respect our health, attention, and freedom.
+      - generic [ref=f1e148]:
+        - generic [ref=f1e149]:
+          - paragraph [ref=f1e150]: outdoor computing
+          - heading "it's a computer you can use outside" [level=2] [ref=f1e155]: it's a computer youcan use outside
+        - paragraph [ref=f1e156]: Read in broad daylight with a screen that uses the sun as its backlight.DC-1 lights up beautifully outdoors without distracting reflections, so you can read outside any time of the day.
+      - generic [ref=f1e158]:
+        - generic [ref=f1e159]:
+          - generic [ref=f1e160]:
+            - img "eye" [ref=f1e162]
+            - generic [ref=f1e163]:
+              - heading "No eye-strain" [level=3] [ref=f1e164]
+              - paragraph [ref=f1e165]: Flicker-free display is easy on the eyes
+          - generic [ref=f1e166]:
+            - img "battery" [ref=f1e168]
+            - generic [ref=f1e169]:
+              - heading "Extended battery" [level=3] [ref=f1e170]
+              - paragraph [ref=f1e171]: Days of use on a single charge
+          - generic [ref=f1e172]:
+            - img "reflection" [ref=f1e174]
+            - generic [ref=f1e175]:
+              - heading "Backlight optional" [level=3] [ref=f1e176]
+              - paragraph [ref=f1e177]: Read in direct sunlight, no backlight needed
+        - img "A Daylight tablet on the grass" [ref=f1e179]
+    - generic [ref=f1e188]:
+      - generic [ref=f1e189]:
+        - heading "Dive deeper into Daylight" [level=2] [ref=f1e191]: Dive deeperinto Daylight
+        - paragraph [ref=f1e192]: Dive deeper into every section on the site and find what you are looking for.
+      - generic [ref=f1e193]:
+        - link [ref=f1e194] [cursor=pointer]:
+          - /url: /product
+          - generic [ref=f1e195]:
+            - img "Product image" [ref=f1e197]
+            - paragraph [ref=f1e199]: Product
+        - link [ref=f1e202] [cursor=pointer]:
+          - /url: /product#specs
+          - generic [ref=f1e203]:
+            - img "Specs image" [ref=f1e205]
+            - paragraph [ref=f1e207]: Specs
+        - link [ref=f1e210] [cursor=pointer]:
+          - /url: /faq
+          - generic [ref=f1e211]:
+            - img "FAQ image" [ref=f1e213]
+            - paragraph [ref=f1e215]: FAQ
+        - link [ref=f1e218] [cursor=pointer]:
+          - /url: https://support.daylightcomputer.com/?_gl=1*ptkduu*_ga*MTM4OTkzMTE3MC4xNzE2MzgzOTg4*_ga_V556R2N7QX*MTcxNzYxOTczOC4xOC4xLjE3MTc2MjExNzIuMC4wLjA.
+          - generic [ref=f1e219]:
+            - img "Support image" [ref=f1e221]
+            - paragraph [ref=f1e223]: Support
+    - generic [ref=f1e227]:
+      - heading "W h a t p e o p l e a r e s a y i n g" [level=2] [ref=f1e228]:
+        - generic [ref=f1e229]:
+          - generic [ref=f1e230]: W
+          - generic [ref=f1e231]: h
+          - generic [ref=f1e232]: a
+          - generic [ref=f1e233]: t
+          - generic [ref=f1e234]: p
+          - generic [ref=f1e235]: e
+          - generic [ref=f1e236]: o
+          - generic [ref=f1e237]: p
+          - generic [ref=f1e238]: l
+          - generic [ref=f1e239]: e
+        - generic [ref=f1e240]:
+          - generic [ref=f1e241]: a
+          - generic [ref=f1e242]: r
+          - generic [ref=f1e243]: e
+          - generic [ref=f1e244]: s
+          - generic [ref=f1e245]: a
+          - generic [ref=f1e246]: "y"
+          - generic [ref=f1e247]: i
+          - generic [ref=f1e248]: "n"
+          - generic [ref=f1e249]: g
+      - generic [ref=f1e250]:
+        - link [ref=f1e252] [cursor=pointer]:
+          - /url: https://x.com/akothari/status/1793749345596228088
+          - generic [ref=f1e253]:
+            - generic [ref=f1e254]:
+              - img "twitter profile image" [ref=f1e255]
+              - generic [ref=f1e256]:
+                - paragraph [ref=f1e257]: Akshay Kothari
+                - paragraph [ref=f1e258]: Co-Founder @NotionHQ
+            - generic [ref=f1e259]:
+              - paragraph [ref=f1e260]: “It’s the only computer I feel comfortable sharing with my kids!”
+              - paragraph [ref=f1e261]: 9:02 PM • May 23, 2024
+        - link [ref=f1e263] [cursor=pointer]:
+          - /url: https://x.com/waqasali/status/1793740889254150595
+          - generic [ref=f1e264]:
+            - generic [ref=f1e265]:
+              - img "twitter profile image" [ref=f1e266]
+              - generic [ref=f1e267]:
+                - paragraph [ref=f1e268]: Waqas Ali
+                - paragraph [ref=f1e269]: Founder @Atoms
+            - generic [ref=f1e270]:
+              - paragraph [ref=f1e271]: “Daylight gets it, a computer that brings the simplicity back to our digital life.”
+              - paragraph [ref=f1e272]: 8:28 PM • May 23, 2024
+        - link [ref=f1e274] [cursor=pointer]:
+          - /url: https://x.com/soleio/status/1793226864531489145
+          - generic [ref=f1e275]:
+            - generic [ref=f1e276]:
+              - img "twitter profile image" [ref=f1e277]
+              - generic [ref=f1e278]:
+                - paragraph [ref=f1e279]: Soleio
+                - paragraph [ref=f1e280]: Early Design @Meta @Dropbox
+            - generic [ref=f1e281]:
+              - paragraph [ref=f1e282]: “The Daylight is the computer of tomorrow. It does not bathe you in blue light or endless notifications. [...] It’s fast and beautiful, like a trim little boat.”
+              - paragraph [ref=f1e283]: 10:26 AM • May 22, 2024
+        - link [ref=f1e285] [cursor=pointer]:
+          - /url: https://x.com/yashevde/status/1793691542101881229
+          - generic [ref=f1e286]:
+            - generic [ref=f1e287]:
+              - img "twitter profile image" [ref=f1e288]
+              - generic [ref=f1e289]:
+                - paragraph [ref=f1e290]: :~#
+                - paragraph [ref=f1e291]: Founder @UrsaBio
+            - generic [ref=f1e292]:
+              - paragraph [ref=f1e293]: “There is simply no better device out there right now for reading long-form, navigating knowledge archives or the night sky, panning around, zooming and marking up PDFs, and writing.”
+              - paragraph [ref=f1e294]: 5:12 PM • May 23, 2024
+      - generic [ref=f1e295]:
+        - paragraph [ref=f1e296]: "know more about daylight on:"
+        - generic [ref=f1e297]:
+          - link "The Verge logo":
+            - /url: https://www.theverge.com/2024/5/23/24163225/daylight-dc1-tablet-livepaper
+            - img "The Verge logo"
+          - link [ref=f1e298] [cursor=pointer]:
+            - /url: https://www.wired.com/story/daylight-tablet-computing-hippie-ideals/
+            - img "Wired logo" [ref=f1e299]
+          - link "Tech Radar logo":
+            - /url: https://www.techradar.com/tablets/a-godzilla-sized-pebble-watch-with-a-decade-of-improvement-daylight-claims-its-tablet-screen-is-better-than-e-ink-but-the-truth-is-far-more-complicated
+            - img "Tech Radar logo"
+          - link "DaringFireball logo":
+            - /url: https://daringfireball.net/linked/2024/05/24/daylight-computer
+            - img "DaringFireball logo"
+    - generic [ref=f1e301]:
+      - img "Sun illustration" [ref=f1e304]
+      - generic [ref=f1e305]:
+        - heading "Daylight is a Public Benefit Co." [level=2] [ref=f1e306]
+        - paragraph [ref=f1e307]: One of my big surprises of Silicon Valley was finding out how nice & well intentioned many of the execs of “evil big tech” were. Shocking because I expected them to be evil. Heartbreaking because they weren’t.
+        - paragraph [ref=f1e308]: It meant big tech do bad not cuz of who runs them, but because of the systematic forces they’re beholden to, ie business model & shareholder mandate.
+        - paragraph [ref=f1e309]: So to make tech that does less evil, it’s not enough to believe we’re good people with good intentions. We need to root cause solve the systematic disincentives.
+        - paragraph [ref=f1e310]: "Thus, we decided daylight should be a PBC, with a double bottom line: not just a fiduciary duty to shareholders, but also a civil duty to uphold our public benefit purpose:"
+        - paragraph [ref=f1e311]: To help technology and humanity live happily ever after.
+        - generic [ref=f1e313]:
+          - generic [ref=f1e314]: Anjan Katta
+          - generic [ref=f1e315]: Founder & CEO
+    - generic [ref=f1e317]:
+      - heading [level=3] [ref=f1e318]:
+        - link "DC-1" [ref=f1e319] [cursor=pointer]:
+          - /url: /product
+        - text: at a glance
+      - generic [ref=f1e321]:
+        - generic [ref=f1e322]:
+          - img "60fps" [ref=f1e324]
+          - paragraph [ref=f1e325]: Fast, paper-like display
+        - generic [ref=f1e326]:
+          - img "pen" [ref=f1e328]
+          - paragraph [ref=f1e329]: Read, write, take notes
+        - generic [ref=f1e330]:
+          - img "apps" [ref=f1e332]
+          - paragraph [ref=f1e333]: Use all your apps
+        - generic [ref=f1e334]:
+          - img "sun" [ref=f1e336]
+          - paragraph [ref=f1e337]: Sunlight readable
+        - generic [ref=f1e338]:
+          - img "campfire" [ref=f1e340]
+          - paragraph [ref=f1e341]: Blue-light free backlight
+    - generic [ref=f1e343]:
+      - generic [ref=f1e344]:
+        - img "a person holding the product" [ref=f1e345]
+        - generic [ref=f1e360]:
+          - button "Order now" [ref=f1e361] [cursor=pointer]
+          - paragraph [ref=f1e363]: Ships within 3-5 business days
+      - generic [ref=f1e364]:
+        - generic [ref=f1e394]:
+          - paragraph [ref=f1e395]: © 2026 • Daylight Computer Co. • Daylight is a Public Benefit Co.
+          - paragraph [ref=f1e396]: Daylight Computer operates on behalf of JANGLE INNOVATIONS INC
+          - generic [ref=f1e397]:
+            - link "Privacy Policy" [ref=f1e398] [cursor=pointer]:
+              - /url: https://support.daylightcomputer.com/privacy-policy
+            - generic [ref=f1e399]: •
+            - link "Terms of Service" [ref=f1e400] [cursor=pointer]:
+              - /url: https://support.daylightcomputer.com/terms-of-service
+        - generic [ref=f1e401]:
+          - generic [ref=f1e402]:
+            - generic [ref=f1e403]: Navigation
+            - list [ref=f1e404]:
+              - listitem [ref=f1e405]:
+                - link "Home" [ref=f1e406] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=f1e407]:
+                - link "Product" [ref=f1e408] [cursor=pointer]:
+                  - /url: /product
+              - listitem [ref=f1e409]:
+                - link "Blog" [ref=f1e410] [cursor=pointer]:
+                  - /url: /blog
+              - listitem [ref=f1e411]:
+                - link "FAQ" [ref=f1e412] [cursor=pointer]:
+                  - /url: /faq
+          - generic [ref=f1e413]:
+            - generic [ref=f1e414]: Who we are
+            - paragraph [ref=f1e415]: A more caring computer company
+          - generic [ref=f1e416]:
+            - generic [ref=f1e417]: Socials
+            - generic [ref=f1e418]:
+              - link "Twitter" [ref=f1e419] [cursor=pointer]:
+                - /url: https://twitter.com/daylightco
+              - link "Tiktok" [ref=f1e423] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@daylightco
+              - link "Instagram" [ref=f1e426] [cursor=pointer]:
+                - /url: https://www.instagram.com/daylightco/
+          - generic [ref=f1e432]:
+            - generic [ref=f1e433]: Get updates
+            - generic [ref=f1e436]:
+              - textbox "E-MAIL" [ref=f1e437]
+              - button "Get updates" [ref=f1e438] [cursor=pointer]
+    - generic:
+      - generic:
+        - img "Daylight tablet on a bag"
+      - generic:
+        - img "girl holding a tablet with a blue sky background"
+  - alert [ref=f1e440]

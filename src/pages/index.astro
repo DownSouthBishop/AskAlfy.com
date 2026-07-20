@@ -2,13 +2,25 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Ledger from '../components/Ledger.astro';
 import HowItWorks from '../components/HowItWorks.astro';
+import UseCases from '../components/UseCases.astro';
+import Trust from '../components/Trust.astro';
+import FAQ from '../components/FAQ.astro';
 import Footer from '../components/Footer.astro';
+import Thread from '../components/Thread.astro';
 ---
 
 <Layout>
 	<Header />
-	<Hero />
-	<HowItWorks />
+	<div class="relative">
+		<Hero />
+		<Ledger />
+		<HowItWorks />
+		<UseCases />
+		<Trust />
+		<FAQ />
+		<Thread />
+	</div>
 	<Footer />
 </Layout>

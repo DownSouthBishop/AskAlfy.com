@@ -1,0 +1,841 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e3]:
+    - generic [ref=f5e4]:
+      - banner [ref=f5e6]:
+        - generic [ref=f5e7]:
+          - link [ref=f5e9] [cursor=pointer]:
+            - /url: /
+            - img "Family" [ref=f5e11]
+          - navigation [ref=f5e22]:
+            - generic [ref=f5e23]:
+              - list [ref=f5e24]:
+                - listitem [ref=f5e25]:
+                  - link "Developers" [ref=f5e26] [cursor=pointer]:
+                    - /url: /docs
+                  - generic:
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link "ConnectKit Connecting a wallet, made simple.":
+                            - /url: /docs/connectkit
+                            - generic:
+                              - generic:
+                                - heading "ConnectKit" [level=5]
+                              - paragraph: Connecting a wallet, made simple.
+                        - listitem:
+                          - link "Family Dedicated self-custody account.":
+                            - /url: /docs/family-account
+                            - generic:
+                              - generic:
+                                - heading "Family" [level=5]
+                              - paragraph: Dedicated self-custody account.
+                - listitem [ref=f5e29]:
+                  - link "Resources" [ref=f5e30] [cursor=pointer]:
+                    - /url: /blog
+                  - generic:
+                    - generic:
+                      - list:
+                        - listitem:
+                          - link "Blog":
+                            - /url: /blog
+                        - listitem:
+                          - link "Changelog":
+                            - /url: /changelog
+                        - listitem:
+                          - link "Help & Support":
+                            - /url: /support
+                        - listitem:
+                          - link "FAQs":
+                            - /url: /faqs
+                - listitem [ref=f5e33]:
+                  - link "X (Twitter)" [ref=f5e34] [cursor=pointer]:
+                    - /url: https://twitter.com/family
+              - generic [ref=f5e35]:
+                - link [ref=f5e36] [cursor=pointer]:
+                  - /url: https://app.family.co
+                  - button "Log In" [ref=f5e37]
+                - button "Get Started" [ref=f5e39] [cursor=pointer]
+      - separator [ref=f5e41]
+    - generic [ref=f5e42]:
+      - main [ref=f5e43]:
+        - generic [ref=f5e44]:
+          - generic [ref=f5e48]:
+            - heading "Your favorite crypto wallet." [level=1] [ref=f5e49]:
+              - generic [ref=f5e50]: Your
+              - generic [ref=f5e51]: favorite
+              - generic [ref=f5e52]: crypto
+              - generic [ref=f5e53]: wallet.
+            - paragraph [ref=f5e55]: Explore Ethereum with the best wallet for iOS. Interacting with crypto has never been so simple.
+            - generic [ref=f5e56]:
+              - link "Download on iOS" [ref=f5e57] [cursor=pointer]:
+                - /url: /download
+              - generic [ref=f5e61] [cursor=pointer]: Watch the Video
+          - generic [ref=f5e665]:
+            - heading "Explore Ethereum in a whole new way." [level=1] [ref=f5e666]:
+              - text: Explore Ethereum
+              - generic [ref=f5e667]: in a whole new way.
+            - generic [ref=f5e668]:
+              - generic [ref=f5e669]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic: Send tokens or collectibles toany address or ENS username.
+                        - generic: Send
+                    - generic:
+                      - img:
+                        - generic: Swap your tokens without everleaving your wallet.
+                        - generic: Swap
+                    - generic:
+                      - img:
+                        - generic: Receive Ethereum based assetsthrough your unique address.
+                        - generic: Receive
+                    - generic:
+                      - img:
+                        - generic: Purchase crypto instantlythrough your bank account.
+                        - generic: Purchase
+                        - generic: ID Required
+                - generic [ref=f5e670]:
+                  - heading "Easy" [level=5] [ref=f5e671]
+                  - paragraph [ref=f5e672]: Whether you’re a beginner or seasoned pro, Family makes it easy.
+              - generic [ref=f5e674]:
+                - heading "Secure" [level=5] [ref=f5e675]
+                - paragraph [ref=f5e676]: Your crypto, your control.Security at every stage.
+              - generic [ref=f5e677]:
+                - generic:
+                  - generic:
+                    - img:
+                      - generic: Jul 19 2026
+                      - generic: Jul 19 2026
+                - generic [ref=f5e678]:
+                  - heading "Fast" [level=5] [ref=f5e679]
+                  - paragraph [ref=f5e680]: Uncompromising speed.Optimal performance, all the time.
+              - generic [ref=f5e681]:
+                - generic:
+                  - generic:
+                    - img:
+                      - generic:
+                        - generic: ~
+                        - generic: 19 Secs
+                - generic [ref=f5e682]:
+                  - heading "Powerful" [level=5] [ref=f5e683]
+                  - paragraph [ref=f5e684]: Experience the full power ofEthereum with advanced features.
+              - generic [ref=f5e686]:
+                - heading "Fun" [level=5] [ref=f5e687]
+                - paragraph [ref=f5e688]: Family takes fun seriously.Delightful interactions with every tap.
+        - separator [ref=f5e690]
+        - generic [ref=f5e692]:
+          - heading "Send, receive, swap. All in one place." [level=1] [ref=f5e693]:
+            - generic [ref=f5e694]: Send, receive, swap.
+            - text: All in one place.
+          - generic [ref=f5e695]:
+            - generic [ref=f5e696]:
+              - generic [ref=f5e699]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e705]: Send
+            - generic [ref=f5e706]:
+              - generic [ref=f5e709]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e715]: Receive
+            - generic [ref=f5e716]:
+              - generic [ref=f5e719]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e725]: Swap
+        - generic [ref=f5e728]:
+          - generic [ref=f5e729]:
+            - heading "Send & Receive" [level=5] [ref=f5e730]
+            - paragraph [ref=f5e731]: Flawless essentials. Easily send tokens and collectibles with the fewest taps, or share your wallet address by simply scanning a personalized QR code to receive new assets.
+          - generic [ref=f5e732]:
+            - heading "Decentralized Swaps" [level=5] [ref=f5e733]
+            - paragraph [ref=f5e734]: Trade thousands of tokens with minimal fees, 24/7. Family ensures optimal prices from various exchanges so you can acquire the tokens you want, whenever you want them.
+          - generic [ref=f5e735]:
+            - heading "Full NFT Support" [level=5] [ref=f5e736]
+            - paragraph [ref=f5e737]: Experience NFTs in their intended format with our full rich media support. Interact with everything, including video, audio, images, and interactive content. The best collectors manage their collections in Family.
+          - generic [ref=f5e738]:
+            - heading "WalletConnect Enabled" [level=5] [ref=f5e739]
+            - paragraph [ref=f5e740]: Easily access decentralized apps with WalletConnect in Family. Simply pair your wallet with the built-in scanner, and enjoy seamless connectivity to a range of powerful applications across web3.
+          - generic [ref=f5e741]:
+            - heading "Self-Custody" [level=5] [ref=f5e742]
+            - paragraph [ref=f5e743]: Family is committed to delivering robust security with flexibility to suit your preferences. The self-custodial wallet prioritizes your control, giving you direct access to your private keys and sensitive data at all times.
+          - generic [ref=f5e744]:
+            - heading "Maximum Privacy" [level=5] [ref=f5e745]
+            - paragraph [ref=f5e746]: Explore web3 on your own terms, with no compromises on privacy or revealing more than you’re comfortable with. Family works with or without an email or phone number, letting you choose the experience that’s right for you.
+        - generic [ref=f5e748]:
+          - generic [ref=f5e749]:
+            - paragraph [ref=f5e750]: Seamless
+            - generic [ref=f5e751]:
+              - heading "The best way to experience NFTs." [level=1] [ref=f5e752]
+              - paragraph [ref=f5e753]: View NFTs in their ideal intended format. Full rich media support no matter the type, from video and audio, to images and interactive.
+            - list [ref=f5e754]:
+              - listitem [ref=f5e755]:
+                - generic [ref=f5e761]: Images
+              - listitem [ref=f5e762]:
+                - generic [ref=f5e767]: Video
+              - listitem [ref=f5e768]:
+                - generic [ref=f5e773]: 3D Models
+              - listitem [ref=f5e774]:
+                - generic [ref=f5e779]: Audio
+              - listitem [ref=f5e780]:
+                - generic [ref=f5e787]: Interactive Models
+              - listitem [ref=f5e788]:
+                - generic [ref=f5e803]: AR Models
+            - button [ref=f5e804] [cursor=pointer]:
+              - generic [ref=f5e814]:
+                - heading "Manage your collectibles" [level=5] [ref=f5e815]
+                - paragraph [ref=f5e817]: Watch the demo
+          - generic [ref=f5e821]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Phone"
+        - separator [ref=f5e823]
+        - generic [ref=f5e825]:
+          - generic [ref=f5e826]:
+            - paragraph [ref=f5e827]: Simple
+            - generic [ref=f5e828]:
+              - heading "Watch the wallets you care about." [level=1] [ref=f5e829]:
+                - text: Watch the wallets
+                - generic [ref=f5e830]: you care about.
+              - paragraph [ref=f5e831]: Keep up to date with unlimited wallets in view-only mode by entering an address or ENS name, and get real-time notifications on any new activity.
+            - list [ref=f5e832]:
+              - listitem [ref=f5e833]:
+                - generic [ref=f5e836]: Watch Any Wallet
+              - listitem [ref=f5e837]:
+                - generic [ref=f5e840]: Rich Notifications
+              - listitem [ref=f5e841]:
+                - generic [ref=f5e844]: Fully Customizable
+            - button [ref=f5e845] [cursor=pointer]:
+              - generic [ref=f5e855]:
+                - heading "Watching Wallets" [level=5] [ref=f5e856]
+                - paragraph [ref=f5e858]: Watch the demo
+          - generic [ref=f5e861]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Phone"
+        - separator [ref=f5e863]
+        - generic [ref=f5e865]:
+          - generic [ref=f5e866]:
+            - paragraph [ref=f5e867]: Understandable
+            - generic [ref=f5e868]:
+              - heading "Wallet activity you can understand." [level=1] [ref=f5e869]:
+                - text: Wallet activity you
+                - generic [ref=f5e870]: can understand.
+              - paragraph [ref=f5e871]: Your transactions and wallet history is readable at a glance. No more having to decipher what confusing events with weird names mean. We do that for you.
+            - list [ref=f5e872]:
+              - listitem [ref=f5e873]:
+                - generic [ref=f5e876]: Human-Readable Activity
+              - listitem [ref=f5e877]:
+                - generic [ref=f5e880]: Real-Time Monitoring
+              - listitem [ref=f5e881]:
+                - generic [ref=f5e884]: Custom Filtering
+            - button [ref=f5e885] [cursor=pointer]:
+              - generic [ref=f5e895]:
+                - heading "Wallet Activity" [level=5] [ref=f5e896]
+                - paragraph [ref=f5e898]: Watch the demo
+          - generic [ref=f5e902]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Phone"
+        - separator [ref=f5e904]
+        - generic [ref=f5e907]:
+          - paragraph [ref=f5e908]: Secure
+          - generic [ref=f5e909]:
+            - heading "Relentless protection. Restful ease." [level=1] [ref=f5e910]:
+              - text: Relentless protection.
+              - generic [ref=f5e911]: Restful ease.
+            - paragraph [ref=f5e912]: Family is fully self-custodial, meaning only you have access to your wallet and its private keys. We have no control over your crypto, nor do we want any.
+          - list [ref=f5e913]:
+            - listitem [ref=f5e914]:
+              - generic [ref=f5e917]: Self-Custody
+            - listitem [ref=f5e918]:
+              - generic [ref=f5e921]: Own Your Keys
+            - listitem [ref=f5e922]:
+              - generic [ref=f5e925]: No Name Required
+            - listitem [ref=f5e926]:
+              - generic [ref=f5e929]: No Lock-In
+            - listitem [ref=f5e930]:
+              - generic [ref=f5e933]: Fully Audited
+        - generic [ref=f5e972]:
+          - heading "Effortless onboarding. Masterful management." [level=1] [ref=f5e973]:
+            - generic [ref=f5e974]: Effortless onboarding.
+            - text: Masterful management.
+          - generic [ref=f5e975]:
+            - generic [ref=f5e976]:
+              - generic [ref=f5e979]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e984]: Onboarding
+            - generic [ref=f5e985]:
+              - generic [ref=f5e988]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e997]: Mission Control
+            - generic [ref=f5e998]:
+              - generic [ref=f5e1001]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img "Phone"
+              - paragraph [ref=f5e1008]: Drag and Drop
+        - separator [ref=f5e1010]
+        - generic [ref=f5e1012]:
+          - heading "The latest from Family" [level=1] [ref=f5e1013]
+          - list [ref=f5e1014]:
+            - listitem [ref=f5e1015]:
+              - link [ref=f5e1017] [cursor=pointer]:
+                - /url: /blog/why-family-accounts
+                - generic [ref=f5e1018]:
+                  - generic [ref=f5e1019]:
+                    - img "The Crypto Wallet Problem – Why We Created Family Accounts" [ref=f5e1025]
+                    - paragraph [ref=f5e1027]: Published 13 May, 2025
+                  - generic [ref=f5e1028]:
+                    - heading "The Crypto Wallet Problem – Why We Created Family Accounts" [level=5] [ref=f5e1029]
+                    - paragraph [ref=f5e1031]: Traditional wallets rely on seed phrases and private keys, but this approach has fundamental flaws. Losing access to your bank account because you misplaced a single piece of information would be unthinkable—yet in crypto, this remains a common reality. Most users struggle with managing seed phrases and private keys, often resorting to insecure storage methods like screenshots or digital notes.
+            - listitem [ref=f5e1032]:
+              - link [ref=f5e1034] [cursor=pointer]:
+                - /url: /blog/family-accounts
+                - generic [ref=f5e1035]:
+                  - generic [ref=f5e1036]:
+                    - img "Making Family Simpler & Safer" [ref=f5e1042]
+                    - paragraph [ref=f5e1044]: Published 2 April, 2025
+                  - generic [ref=f5e1045]:
+                    - heading "Making Family Simpler & Safer" [level=5] [ref=f5e1046]
+                    - paragraph [ref=f5e1048]: We're thrilled to announce a major upgrade to Family—designed to make onboarding and navigating Ethereum simpler and safer than ever. Born from our own need for seamless yet secure crypto experiences, these features offer the easiest path to getting onchain.
+        - separator [ref=f5e1050]
+        - generic [ref=f5e1052]:
+          - generic [ref=f5e1053]:
+            - heading "Details that matter." [level=1] [ref=f5e1054]
+            - paragraph [ref=f5e1055]: We sweat the details, no matter how small.
+          - generic [ref=f5e1056]:
+            - generic [ref=f5e1057]:
+              - generic [ref=f5e1058]:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic: ~ 1000 USDC
+              - generic [ref=f5e1059]:
+                - paragraph [ref=f5e1060]: Monitor In Real-Time
+                - paragraph [ref=f5e1061]: Track the status of all your transactions in real-time, with live updates, detailed information, notifications, and seamless animations between states. You’ll be the first to know when your transactions go through.
+            - generic [ref=f5e1062]:
+              - img [ref=f5e1064]:
+                - generic [ref=f5e1076]: Transaction
+                - generic [ref=f5e1078]: Analyzing
+                - generic [ref=f5e1080]: Safe
+              - generic [ref=f5e1082]:
+                - paragraph [ref=f5e1083]: Protect Your Assets
+                - paragraph [ref=f5e1084]: Understand your transactions before you send them and receive warnings about potentially harmful actions. Get full protection over all of your assets, with help from advanced simulations and suggested actions.
+            - generic [ref=f5e1085]:
+              - generic [ref=f5e1086]:
+                - generic:
+                  - generic:
+                    - img:
+                      - generic:
+                        - generic: $3,080.00
+                        - generic: Ethereum
+                        - generic: 1.54 ETH
+                        - generic: 0.00%
+                    - img:
+                      - generic:
+                        - generic: $41.00
+                        - generic: USDC
+                        - generic: 41.00 USDC
+                        - generic: 0.00%
+              - generic [ref=f5e1087]:
+                - paragraph [ref=f5e1088]: Organise Your Wallet
+                - paragraph [ref=f5e1089]: Take full control over your wallet with powerful organization across all assets. Rearrange your tokens and collectibles, star your favorites, or move things to the trash when you want to do some spring-cleaning.
+            - generic [ref=f5e1092]:
+              - paragraph [ref=f5e1093]: See Everything Clearly
+              - paragraph [ref=f5e1094]: Alleviate all confusion with crystal clear breakdowns of your wallets and their respective grouping. Whether you have two wallets or two hundred, Family provides a birds eye view into your entire setup with unmatched clarity.
+        - separator [ref=f5e1096]
+        - generic [ref=f5e1097]:
+          - generic [ref=f5e1100]:
+            - generic [ref=f5e1101]:
+              - heading "Friends of Family" [level=1] [ref=f5e1102]
+              - paragraph [ref=f5e1103]: See what people are saying.
+            - link [ref=f5e1105] [cursor=pointer]:
+              - /url: https://twitter.com/family
+          - generic [ref=f5e1111]:
+            - generic [ref=f5e1112]:
+              - generic [ref=f5e1114]:
+                - generic [ref=f5e1115]:
+                  - generic [ref=f5e1116]:
+                    - link [ref=f5e1118] [cursor=pointer]:
+                      - /url: https://twitter.com/floguo/status/1645597339955118080
+                    - generic [ref=f5e1124]:
+                      - link "floguo" [ref=f5e1125] [cursor=pointer]:
+                        - /url: https://twitter.com/floguo/status/1645597339955118080
+                      - generic [ref=f5e1127]: "@floguo"
+                  - link [ref=f5e1129] [cursor=pointer]:
+                    - /url: https://twitter.com/floguo/status/1645597339955118080
+                - paragraph [ref=f5e1133]: One of the best mobile apps *ever* is going to drop soon, and it's a crypto wallet. @family is building beautifully friendly crypto software & I haven't been this giddy in ages
+              - generic [ref=f5e1135]:
+                - generic [ref=f5e1136]:
+                  - generic [ref=f5e1137]:
+                    - link [ref=f5e1139] [cursor=pointer]:
+                      - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                    - generic [ref=f5e1145]:
+                      - link "Daniel Feodoroff" [ref=f5e1146] [cursor=pointer]:
+                        - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                      - generic [ref=f5e1148]: "@mrdanielfeo"
+                  - link [ref=f5e1150] [cursor=pointer]:
+                    - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                - paragraph [ref=f5e1154]: The family app has some of the best UI and UX of a crypto app I’ve ever seen. Every snippet just blows my mind more and more
+              - generic [ref=f5e1156]:
+                - generic [ref=f5e1157]:
+                  - generic [ref=f5e1158]:
+                    - link [ref=f5e1160] [cursor=pointer]:
+                      - /url: https://twitter.com/web3emm/status/1650912133402722310
+                    - generic [ref=f5e1166]:
+                      - link "emm" [ref=f5e1167] [cursor=pointer]:
+                        - /url: https://twitter.com/web3emm/status/1650912133402722310
+                      - generic [ref=f5e1169]: "@web3emm"
+                  - link [ref=f5e1171] [cursor=pointer]:
+                    - /url: https://twitter.com/web3emm/status/1650912133402722310
+                - paragraph [ref=f5e1175]: Got in on the @family beta and first impression is that THIS is the web2 delightful UI/UX that web3 has been missing
+              - generic [ref=f5e1177]:
+                - generic [ref=f5e1178]:
+                  - generic [ref=f5e1179]:
+                    - link [ref=f5e1181] [cursor=pointer]:
+                      - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                    - generic [ref=f5e1187]:
+                      - link "skytracker.lens(🌸, 🌿)" [ref=f5e1188] [cursor=pointer]:
+                        - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                      - generic [ref=f5e1190]: "@Skytrackr"
+                  - link [ref=f5e1192] [cursor=pointer]:
+                    - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                - paragraph [ref=f5e1196]: This wallet is absolutely amazing! 🔥🔥
+              - generic [ref=f5e1198]:
+                - generic [ref=f5e1199]:
+                  - generic [ref=f5e1200]:
+                    - link [ref=f5e1202] [cursor=pointer]:
+                      - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                    - generic [ref=f5e1208]:
+                      - link "Ilya Komolkin" [ref=f5e1209] [cursor=pointer]:
+                        - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                      - generic [ref=f5e1211]: "@dappdesigner"
+                  - link [ref=f5e1213] [cursor=pointer]:
+                    - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                - paragraph [ref=f5e1217]: It is one of the best UX in Web3 space. Onboarding, watching wallets, sorting, wallets management and micro-animations are on the whole another level 👏 Keep building!
+              - generic [ref=f5e1219]:
+                - generic [ref=f5e1220]:
+                  - generic [ref=f5e1221]:
+                    - link [ref=f5e1223] [cursor=pointer]:
+                      - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                    - generic [ref=f5e1229]:
+                      - link "miguel piedrafita" [ref=f5e1230] [cursor=pointer]:
+                        - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                      - generic [ref=f5e1232]: "@m1guelpf"
+                  - link [ref=f5e1234] [cursor=pointer]:
+                    - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                - paragraph [ref=f5e1238]: "@family is the best ethereum wallet I have ever used"
+              - generic [ref=f5e1240]:
+                - generic [ref=f5e1241]:
+                  - generic [ref=f5e1242]:
+                    - link [ref=f5e1244] [cursor=pointer]:
+                      - /url: https://twitter.com/shivnull/status/1650977326111358977
+                    - generic [ref=f5e1250]:
+                      - link "Shiv" [ref=f5e1251] [cursor=pointer]:
+                        - /url: https://twitter.com/shivnull/status/1650977326111358977
+                      - generic [ref=f5e1253]: "@shivnull"
+                  - link [ref=f5e1255] [cursor=pointer]:
+                    - /url: https://twitter.com/shivnull/status/1650977326111358977
+                - paragraph [ref=f5e1259]: Wow @family wallet is incredible, these are the type of interfaces we need to propel this space forward
+              - generic [ref=f5e1261]:
+                - generic [ref=f5e1262]:
+                  - generic [ref=f5e1263]:
+                    - link [ref=f5e1265] [cursor=pointer]:
+                      - /url: https://twitter.com/floguo/status/1645597339955118080
+                    - generic [ref=f5e1271]:
+                      - link "floguo" [ref=f5e1272] [cursor=pointer]:
+                        - /url: https://twitter.com/floguo/status/1645597339955118080
+                      - generic [ref=f5e1274]: "@floguo"
+                  - link [ref=f5e1276] [cursor=pointer]:
+                    - /url: https://twitter.com/floguo/status/1645597339955118080
+                - paragraph [ref=f5e1280]: One of the best mobile apps *ever* is going to drop soon, and it's a crypto wallet. @family is building beautifully friendly crypto software & I haven't been this giddy in ages
+              - generic [ref=f5e1282]:
+                - generic [ref=f5e1283]:
+                  - generic [ref=f5e1284]:
+                    - link [ref=f5e1286] [cursor=pointer]:
+                      - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                    - generic [ref=f5e1292]:
+                      - link "Daniel Feodoroff" [ref=f5e1293] [cursor=pointer]:
+                        - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                      - generic [ref=f5e1295]: "@mrdanielfeo"
+                  - link [ref=f5e1297] [cursor=pointer]:
+                    - /url: https://twitter.com/mrdanielfeo/status/1646371918965260289
+                - paragraph [ref=f5e1301]: The family app has some of the best UI and UX of a crypto app I’ve ever seen. Every snippet just blows my mind more and more
+              - generic [ref=f5e1303]:
+                - generic [ref=f5e1304]:
+                  - generic [ref=f5e1305]:
+                    - link [ref=f5e1307] [cursor=pointer]:
+                      - /url: https://twitter.com/web3emm/status/1650912133402722310
+                    - generic [ref=f5e1313]:
+                      - link "emm" [ref=f5e1314] [cursor=pointer]:
+                        - /url: https://twitter.com/web3emm/status/1650912133402722310
+                      - generic [ref=f5e1316]: "@web3emm"
+                  - link [ref=f5e1318] [cursor=pointer]:
+                    - /url: https://twitter.com/web3emm/status/1650912133402722310
+                - paragraph [ref=f5e1322]: Got in on the @family beta and first impression is that THIS is the web2 delightful UI/UX that web3 has been missing
+              - generic [ref=f5e1324]:
+                - generic [ref=f5e1325]:
+                  - generic [ref=f5e1326]:
+                    - link [ref=f5e1328] [cursor=pointer]:
+                      - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                    - generic [ref=f5e1334]:
+                      - link "skytracker.lens(🌸, 🌿)" [ref=f5e1335] [cursor=pointer]:
+                        - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                      - generic [ref=f5e1337]: "@Skytrackr"
+                  - link [ref=f5e1339] [cursor=pointer]:
+                    - /url: https://twitter.com/Skytrackr/status/1656698593703776256
+                - paragraph [ref=f5e1343]: This wallet is absolutely amazing! 🔥🔥
+              - generic [ref=f5e1345]:
+                - generic [ref=f5e1346]:
+                  - generic [ref=f5e1347]:
+                    - link [ref=f5e1349] [cursor=pointer]:
+                      - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                    - generic [ref=f5e1355]:
+                      - link "Ilya Komolkin" [ref=f5e1356] [cursor=pointer]:
+                        - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                      - generic [ref=f5e1358]: "@dappdesigner"
+                  - link [ref=f5e1360] [cursor=pointer]:
+                    - /url: https://twitter.com/dappdesigner/status/1651952932848295937
+                - paragraph [ref=f5e1364]: It is one of the best UX in Web3 space. Onboarding, watching wallets, sorting, wallets management and micro-animations are on the whole another level 👏 Keep building!
+              - generic [ref=f5e1366]:
+                - generic [ref=f5e1367]:
+                  - generic [ref=f5e1368]:
+                    - link [ref=f5e1370] [cursor=pointer]:
+                      - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                    - generic [ref=f5e1376]:
+                      - link "miguel piedrafita" [ref=f5e1377] [cursor=pointer]:
+                        - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                      - generic [ref=f5e1379]: "@m1guelpf"
+                  - link [ref=f5e1381] [cursor=pointer]:
+                    - /url: https://twitter.com/m1guelpf/status/1644490929430986753
+                - paragraph [ref=f5e1385]: "@family is the best ethereum wallet I have ever used"
+              - generic [ref=f5e1387]:
+                - generic [ref=f5e1388]:
+                  - generic [ref=f5e1389]:
+                    - link [ref=f5e1391] [cursor=pointer]:
+                      - /url: https://twitter.com/shivnull/status/1650977326111358977
+                    - generic [ref=f5e1397]:
+                      - link "Shiv" [ref=f5e1398] [cursor=pointer]:
+                        - /url: https://twitter.com/shivnull/status/1650977326111358977
+                      - generic [ref=f5e1400]: "@shivnull"
+                  - link [ref=f5e1402] [cursor=pointer]:
+                    - /url: https://twitter.com/shivnull/status/1650977326111358977
+                - paragraph [ref=f5e1406]: Wow @family wallet is incredible, these are the type of interfaces we need to propel this space forward
+            - generic [ref=f5e1407]:
+              - generic [ref=f5e1409]:
+                - generic [ref=f5e1410]:
+                  - generic [ref=f5e1411]:
+                    - link [ref=f5e1413] [cursor=pointer]:
+                      - /url: https://twitter.com/____zine____/status/1653088998645022726
+                    - generic [ref=f5e1419]:
+                      - link "Zora Zine" [ref=f5e1420] [cursor=pointer]:
+                        - /url: https://twitter.com/____zine____/status/1653088998645022726
+                      - generic [ref=f5e1422]: "@____zine____"
+                  - link [ref=f5e1424] [cursor=pointer]:
+                    - /url: https://twitter.com/____zine____/status/1653088998645022726
+                - paragraph [ref=f5e1428]: Best wallet to experience our text NFTs
+              - generic [ref=f5e1430]:
+                - generic [ref=f5e1431]:
+                  - generic [ref=f5e1432]:
+                    - link [ref=f5e1434] [cursor=pointer]:
+                      - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                    - generic [ref=f5e1440]:
+                      - link "liquid density" [ref=f5e1441] [cursor=pointer]:
+                        - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                      - generic [ref=f5e1443]: "@liquiddensity"
+                  - link [ref=f5e1445] [cursor=pointer]:
+                    - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                - paragraph [ref=f5e1449]: This is absolutely mind blowing from an onboarding perspective. Never have I seen such an approachable and beautiful flow for anything ever.
+              - generic [ref=f5e1451]:
+                - generic [ref=f5e1452]:
+                  - generic [ref=f5e1453]:
+                    - link [ref=f5e1455] [cursor=pointer]:
+                      - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                    - generic [ref=f5e1461]:
+                      - link "Tani" [ref=f5e1462] [cursor=pointer]:
+                        - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                      - generic [ref=f5e1464]: "@tanishqxyz"
+                  - link [ref=f5e1466] [cursor=pointer]:
+                    - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                - paragraph [ref=f5e1470]: I spent the last 5 mins scrubbing left and right on the price chart, watching those numbers animate beautifully. It shows
+              - generic [ref=f5e1472]:
+                - generic [ref=f5e1473]:
+                  - generic [ref=f5e1474]:
+                    - link [ref=f5e1476] [cursor=pointer]:
+                      - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                    - generic [ref=f5e1482]:
+                      - link "Maxim Bogun" [ref=f5e1483] [cursor=pointer]:
+                        - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                      - generic [ref=f5e1485]: "@i_bogun"
+                  - link [ref=f5e1487] [cursor=pointer]:
+                    - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                - paragraph [ref=f5e1491]: I’d create one more wallet just to go through this whole interface and test interactions. Excited!
+              - generic [ref=f5e1493]:
+                - generic [ref=f5e1494]:
+                  - generic [ref=f5e1495]:
+                    - link [ref=f5e1497] [cursor=pointer]:
+                      - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                    - generic [ref=f5e1503]:
+                      - link "artiom" [ref=f5e1504] [cursor=pointer]:
+                        - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                      - generic [ref=f5e1506]: "@artignatyev"
+                  - link [ref=f5e1508] [cursor=pointer]:
+                    - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                - paragraph [ref=f5e1512]: Been playing with the family beta for a while and it's the best self-custodial wallet experience I've ever had — details matter — it could def become the gateway for the next wave of new-to-crypto people
+              - generic [ref=f5e1514]:
+                - generic [ref=f5e1515]:
+                  - generic [ref=f5e1516]:
+                    - link [ref=f5e1518] [cursor=pointer]:
+                      - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                    - generic [ref=f5e1524]:
+                      - link "Clayo" [ref=f5e1525] [cursor=pointer]:
+                        - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                      - generic [ref=f5e1527]: "@ClayOglesby"
+                  - link [ref=f5e1529] [cursor=pointer]:
+                    - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                - paragraph [ref=f5e1533]: "@family has some pretty incredible ui and micro interactions that make the app seem very approachable for something as complex as a crypto wallet for \"normies\"."
+              - generic [ref=f5e1535]:
+                - generic [ref=f5e1536]:
+                  - generic [ref=f5e1537]:
+                    - link [ref=f5e1539] [cursor=pointer]:
+                      - /url: https://twitter.com/g1sh/status/1646955057697677312
+                    - generic [ref=f5e1545]:
+                      - link "Guillermo Torres" [ref=f5e1546] [cursor=pointer]:
+                        - /url: https://twitter.com/g1sh/status/1646955057697677312
+                      - generic [ref=f5e1548]: "@g1sh"
+                  - link [ref=f5e1550] [cursor=pointer]:
+                    - /url: https://twitter.com/g1sh/status/1646955057697677312
+                - paragraph [ref=f5e1554]: Wallet creation can be cumbersome, Family takes a interesting approach that instead of making it easier/faster, it tries to add meaning and delight with a snappy experience.
+              - generic [ref=f5e1556]:
+                - generic [ref=f5e1557]:
+                  - generic [ref=f5e1558]:
+                    - link [ref=f5e1560] [cursor=pointer]:
+                      - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                    - generic [ref=f5e1566]:
+                      - link "Adam Waterhouse" [ref=f5e1567] [cursor=pointer]:
+                        - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                      - generic [ref=f5e1569]: "@AdamWaterhous10"
+                  - link [ref=f5e1571] [cursor=pointer]:
+                    - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                - paragraph [ref=f5e1575]: "Love this! The UX around creating a #web3 wallet has needed an overhaul for a long time."
+              - generic [ref=f5e1577]:
+                - generic [ref=f5e1578]:
+                  - generic [ref=f5e1579]:
+                    - link [ref=f5e1581] [cursor=pointer]:
+                      - /url: https://twitter.com/____zine____/status/1653088998645022726
+                    - generic [ref=f5e1587]:
+                      - link "Zora Zine" [ref=f5e1588] [cursor=pointer]:
+                        - /url: https://twitter.com/____zine____/status/1653088998645022726
+                      - generic [ref=f5e1590]: "@____zine____"
+                  - link [ref=f5e1592] [cursor=pointer]:
+                    - /url: https://twitter.com/____zine____/status/1653088998645022726
+                - paragraph [ref=f5e1596]: Best wallet to experience our text NFTs
+              - generic [ref=f5e1598]:
+                - generic [ref=f5e1599]:
+                  - generic [ref=f5e1600]:
+                    - link [ref=f5e1602] [cursor=pointer]:
+                      - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                    - generic [ref=f5e1608]:
+                      - link "liquid density" [ref=f5e1609] [cursor=pointer]:
+                        - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                      - generic [ref=f5e1611]: "@liquiddensity"
+                  - link [ref=f5e1613] [cursor=pointer]:
+                    - /url: https://twitter.com/liquiddensity/status/1647032880709730308
+                - paragraph [ref=f5e1617]: This is absolutely mind blowing from an onboarding perspective. Never have I seen such an approachable and beautiful flow for anything ever.
+              - generic [ref=f5e1619]:
+                - generic [ref=f5e1620]:
+                  - generic [ref=f5e1621]:
+                    - link [ref=f5e1623] [cursor=pointer]:
+                      - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                    - generic [ref=f5e1629]:
+                      - link "Tani" [ref=f5e1630] [cursor=pointer]:
+                        - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                      - generic [ref=f5e1632]: "@tanishqxyz"
+                  - link [ref=f5e1634] [cursor=pointer]:
+                    - /url: https://twitter.com/tanishqxyz/status/1650912960456409111
+                - paragraph [ref=f5e1638]: I spent the last 5 mins scrubbing left and right on the price chart, watching those numbers animate beautifully. It shows
+              - generic [ref=f5e1640]:
+                - generic [ref=f5e1641]:
+                  - generic [ref=f5e1642]:
+                    - link [ref=f5e1644] [cursor=pointer]:
+                      - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                    - generic [ref=f5e1650]:
+                      - link "Maxim Bogun" [ref=f5e1651] [cursor=pointer]:
+                        - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                      - generic [ref=f5e1653]: "@i_bogun"
+                  - link [ref=f5e1655] [cursor=pointer]:
+                    - /url: https://twitter.com/i_bogun/status/1647222064615415811
+                - paragraph [ref=f5e1659]: I’d create one more wallet just to go through this whole interface and test interactions. Excited!
+              - generic [ref=f5e1661]:
+                - generic [ref=f5e1662]:
+                  - generic [ref=f5e1663]:
+                    - link [ref=f5e1665] [cursor=pointer]:
+                      - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                    - generic [ref=f5e1671]:
+                      - link "artiom" [ref=f5e1672] [cursor=pointer]:
+                        - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                      - generic [ref=f5e1674]: "@artignatyev"
+                  - link [ref=f5e1676] [cursor=pointer]:
+                    - /url: https://twitter.com/artignatyev/status/1652081272443883521
+                - paragraph [ref=f5e1680]: Been playing with the family beta for a while and it's the best self-custodial wallet experience I've ever had — details matter — it could def become the gateway for the next wave of new-to-crypto people
+              - generic [ref=f5e1682]:
+                - generic [ref=f5e1683]:
+                  - generic [ref=f5e1684]:
+                    - link [ref=f5e1686] [cursor=pointer]:
+                      - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                    - generic [ref=f5e1692]:
+                      - link "Clayo" [ref=f5e1693] [cursor=pointer]:
+                        - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                      - generic [ref=f5e1695]: "@ClayOglesby"
+                  - link [ref=f5e1697] [cursor=pointer]:
+                    - /url: https://twitter.com/ClayOglesby/status/1649263199097700353
+                - paragraph [ref=f5e1701]: "@family has some pretty incredible ui and micro interactions that make the app seem very approachable for something as complex as a crypto wallet for \"normies\"."
+              - generic [ref=f5e1703]:
+                - generic [ref=f5e1704]:
+                  - generic [ref=f5e1705]:
+                    - link [ref=f5e1707] [cursor=pointer]:
+                      - /url: https://twitter.com/g1sh/status/1646955057697677312
+                    - generic [ref=f5e1713]:
+                      - link "Guillermo Torres" [ref=f5e1714] [cursor=pointer]:
+                        - /url: https://twitter.com/g1sh/status/1646955057697677312
+                      - generic [ref=f5e1716]: "@g1sh"
+                  - link [ref=f5e1718] [cursor=pointer]:
+                    - /url: https://twitter.com/g1sh/status/1646955057697677312
+                - paragraph [ref=f5e1722]: Wallet creation can be cumbersome, Family takes a interesting approach that instead of making it easier/faster, it tries to add meaning and delight with a snappy experience.
+              - generic [ref=f5e1724]:
+                - generic [ref=f5e1725]:
+                  - generic [ref=f5e1726]:
+                    - link [ref=f5e1728] [cursor=pointer]:
+                      - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                    - generic [ref=f5e1734]:
+                      - link "Adam Waterhouse" [ref=f5e1735] [cursor=pointer]:
+                        - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                      - generic [ref=f5e1737]: "@AdamWaterhous10"
+                  - link [ref=f5e1739] [cursor=pointer]:
+                    - /url: https://twitter.com/AdamWaterhous10/status/1658481310288195592
+                - paragraph [ref=f5e1743]: "Love this! The UX around creating a #web3 wallet has needed an overhaul for a long time."
+        - separator [ref=f5e1745]
+        - generic [ref=f5e1747]:
+          - heading "Frequently Asked Questions" [level=1] [ref=f5e1748]
+          - generic [ref=f5e1749]:
+            - generic [ref=f5e1750]:
+              - generic [ref=f5e1751]:
+                - button [ref=f5e1752]
+                - generic [ref=f5e1755]:
+                  - heading "Is Family safe?" [level=4] [ref=f5e1757] [cursor=pointer]
+                  - paragraph [ref=f5e1760]:
+                    - text: Yes, Family is safe. Only you have access to your credentials and, consequently, your wallet and its assets. In addition, we employ several other security measures including requiring 2FA via biometrics for sensitive actions, such as signing transactions. Family has also been
+                    - link "audited by Zellic" [ref=f5e1761] [cursor=pointer]:
+                      - /url: https://family.co/media/family-wallet-audit-report-2024.pdf
+                    - text: ", a leading security firm."
+              - generic [ref=f5e1762]:
+                - button [ref=f5e1763]
+                - generic [ref=f5e1766]:
+                  - heading "Can I switch from another wallet?" [level=4] [ref=f5e1768] [cursor=pointer]
+                  - paragraph [ref=f5e1771]:
+                    - text: Yes, you can easily switch to Family from another wallet. If you're using a non-custodial wallet like Phantom or MetaMask and want to keep your current wallet addresses, you can import your existing wallet(s) into Family using your Secret Recovery Phrase or Private Key. Check out our simple guides on how to
+                    - link "Import from MetaMask" [ref=f5e1772] [cursor=pointer]:
+                      - /url: /support/import-a-wallet-from-metamask
+                    - text: and how to
+                    - link "Import from Phantom" [ref=f5e1773] [cursor=pointer]:
+                      - /url: /support/import-a-wallet-from-phantom
+                    - text: .
+              - generic [ref=f5e1774]:
+                - button [ref=f5e1775]
+                - generic [ref=f5e1778]:
+                  - heading "What networks does Family support?" [level=4] [ref=f5e1780] [cursor=pointer]
+                  - paragraph [ref=f5e1783]: Family currently supports Ethereum mainnet, as well as Layer 2 networks (L2s) including Optimism, Base, Arbitrum, Polygon, and zkSync, with more to come.
+            - link [ref=f5e1784] [cursor=pointer]:
+              - /url: /faqs
+        - generic [ref=f5e1839]:
+          - generic [ref=f5e1840]:
+            - heading "Explore Family" [level=1] [ref=f5e1841]
+            - paragraph [ref=f5e1842]: Family is a beautiful self-custody Ethereum wallet designed to make crypto easy for everyone.
+          - link [ref=f5e1843] [cursor=pointer]:
+            - /url: /download
+      - contentinfo [ref=f5e1848]:
+        - navigation [ref=f5e1852]:
+          - list [ref=f5e1853]:
+            - listitem [ref=f5e1854]:
+              - heading "Developers" [level=5] [ref=f5e1855]
+              - list [ref=f5e1856]:
+                - listitem [ref=f5e1857]:
+                  - link "Documentation" [ref=f5e1858] [cursor=pointer]:
+                    - /url: /docs
+                - listitem [ref=f5e1859]:
+                  - link "ConnectKit" [ref=f5e1860] [cursor=pointer]:
+                    - /url: /docs/connectkit
+                - listitem [ref=f5e1861]:
+                  - link "GitHub" [ref=f5e1862] [cursor=pointer]:
+                    - /url: https://github.com/family
+            - listitem [ref=f5e1863]:
+              - heading "Resources" [level=5] [ref=f5e1864]
+              - list [ref=f5e1865]:
+                - listitem [ref=f5e1866]:
+                  - link "Audit Report" [ref=f5e1867] [cursor=pointer]:
+                    - /url: /media/family-wallet-audit-report-2024.pdf
+                - listitem [ref=f5e1868]:
+                  - link "Changelog" [ref=f5e1869] [cursor=pointer]:
+                    - /url: /changelog
+                - listitem [ref=f5e1870]:
+                  - link "Blog" [ref=f5e1871] [cursor=pointer]:
+                    - /url: /blog
+                - listitem [ref=f5e1872]:
+                  - link "FAQs" [ref=f5e1873] [cursor=pointer]:
+                    - /url: /faqs
+                - listitem [ref=f5e1874]:
+                  - link "Press Kit" [ref=f5e1875] [cursor=pointer]:
+                    - /url: /family-press-kit.zip
+            - listitem [ref=f5e1876]:
+              - heading "Company" [level=5] [ref=f5e1877]
+              - list [ref=f5e1878]:
+                - listitem [ref=f5e1879]:
+                  - link "Contact" [ref=f5e1880] [cursor=pointer]:
+                    - /url: mailto:support@family.co
+                - listitem [ref=f5e1881]:
+                  - link "X (Twitter)" [ref=f5e1882] [cursor=pointer]:
+                    - /url: https://twitter.com/family
+                - listitem [ref=f5e1883]:
+                  - link "Legal" [ref=f5e1884] [cursor=pointer]:
+                    - /url: /legal
+        - generic [ref=f5e1885]:
+          - paragraph [ref=f5e1886]: © 2026
+          - list [ref=f5e1887]:
+            - listitem [ref=f5e1888]:
+              - link [ref=f5e1889] [cursor=pointer]:
+                - /url: https://github.com/family
+            - listitem [ref=f5e1892]:
+              - link [ref=f5e1893] [cursor=pointer]:
+                - /url: https://twitter.com/family
+            - listitem [ref=f5e1896]:
+              - link [ref=f5e1897] [cursor=pointer]:
+                - /url: mailto:support@family.co
+  - alert [ref=f5e1901]

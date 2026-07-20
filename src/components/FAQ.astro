@@ -1,0 +1,67 @@
+---
+const faqs = [
+	{
+		q: 'What can Alfy actually do?',
+		a: "The everyday things you keep meaning to get to — appointments, birthdays, bills, bookings, emails you've been avoiding. If you'd hand it to a capable friend, you can text it to Alfy.",
+	},
+	{
+		q: 'Do I need to install anything?',
+		a: "No. Alfy is a phone number. If your phone can text, it works — no app, no account setup, no password to forget.",
+	},
+	{
+		q: 'Will Alfy do things without asking me?',
+		a: "Not unless you've told it to. Everything waits for your yes. If you approve the same kind of thing a few times, Alfy will offer to handle it on its own — and you can take that back whenever you like.",
+	},
+	{
+		q: 'Is my information safe?',
+		a: "Alfy connects to your accounts through their official sign-in — it never sees or stores your passwords. You can disconnect anything, or delete everything, whenever you want.",
+	},
+	{
+		q: 'What if Alfy gets something wrong?',
+		a: "It tells you, plainly. \"I couldn't reach your calendar — trying again in an hour\" beats pretending. Anything that can be undone comes with an undo.",
+	},
+	{
+		q: 'Can I stop anytime?',
+		a: 'Yes. Cancel by text, and take a copy of everything with you. Staying should be earned, not enforced.',
+	},
+];
+---
+
+<section class="faq mx-auto max-w-3xl px-6 py-20 lg:py-28" id="faq">
+	<h2 class="faq-drift font-display text-h1 font-semibold text-balance">
+		Fair questions.
+	</h2>
+
+	<div class="mt-10 divide-y divide-hairline border-y border-hairline">
+		{
+			faqs.map((item) => (
+				<details class="faq-item group">
+					<summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 py-5 text-body font-medium text-espresso [&::-webkit-details-marker]:hidden">
+						{item.q}
+						<span
+							class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline text-secondary transition-transform duration-200 group-open:rotate-45"
+							aria-hidden="true"
+						>
+							<svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none">
+								<path
+									d="M8 2v12M2 8h12"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+								/>
+							</svg>
+						</span>
+					</summary>
+					<p class="max-w-xl pb-6 text-body text-secondary">{item.a}</p>
+				</details>
+			))
+		}
+	</div>
+</section>
+
+<script>
+	import { reveal, drift } from '../lib/reveal';
+
+	reveal('.faq-item', '.faq', { stagger: 0.06 });
+	drift('.faq-drift');
+</script>

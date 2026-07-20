@@ -1,0 +1,337 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const queue = [
+	{
+		kind: 'Email',
+		summary: 'Reply to Dana about Thursday',
+		draft: "Thursday works — I'll bring the numbers from last quarter. See you at 2. — Jordan",
+	},
+	{
+		kind: 'Calendar',
+		summary: 'Book the dentist, Tuesday 9:00',
+		draft: 'Dr. Okafor has Tuesday 9:00 open. It fits before your 10:30 call.',
+	},
+	{
+		kind: 'Order',
+		summary: "Mom's birthday flowers, $34",
+		draft: 'Lily bouquet from the florist she used last year. Arrives Friday, card included.',
+	},
+];
+
+const watching = [
+	'Wifi bill is due Friday — reminder set for Thursday morning',
+	'Airline refund from March — checking daily, day 6',
+];
+
+const handled = [
+	{ what: 'Replied to Dana about Thursday', when: 'you approved, 9:14am', undo: true },
+	{ what: 'Booked the dentist for Tuesday 9:00', when: 'you approved, 8:02am', undo: true },
+	{ what: 'Paid the wifi bill', when: 'a standing yes you gave Jan 12', undo: false },
+	{ what: 'Moved lunch with Priya to Friday', when: 'you approved, yesterday', undo: true },
+	{ what: 'Renewed the prescription', when: 'you approved, Tuesday', undo: false },
+];
+
+const people = [
+	{ name: 'Sam', note: 'Your brother. Prefers texts. Owes you $40.' },
+	{ name: 'Dana', note: 'Coworker. Prefers email, mornings only.' },
+	{ name: 'Mom', note: 'Birthday June 14. Likes lilies, not roses.' },
+];
+
+const trust = [
+	{ line: 'Sends calendar replies without asking', since: 'you granted this Jan 12' },
+	{ line: 'Pays the wifi bill each month', since: 'you granted this Feb 3' },
+];
+---
+
+<Layout title="Alfy — your week at a glance">
+	<div class="min-h-dvh">
+		<header class="border-b border-hairline bg-card">
+			<div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+				<div class="flex items-center gap-3">
+					<a
+						href="/"
+						aria-label="Back to the homepage"
+						class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-hairline text-secondary transition-colors hover:bg-linen hover:text-espresso focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+					>
+						<svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+							<path
+								d="M10 3 5 8l5 5"
+								stroke="currentColor"
+								stroke-width="1.8"
+								stroke-linecap="round"
+								stroke-linejoin="round"></path>
+						</svg>
+					</a>
+					<a href="/" class="font-display text-h2 font-semibold text-espresso">AskAlfy</a>
+				</div>
+				<button
+					id="gear"
+					type="button"
+					aria-expanded="false"
+					aria-controls="settings"
+					class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-secondary transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+					aria-label="Settings"
+				>
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+						<circle cx="12" cy="12" r="3"></circle>
+						<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+					</svg>
+				</button>
+			</div>
+			<nav class="mx-auto max-w-3xl px-6" aria-label="Screens">
+				<div class="flex gap-1">
+					<button data-tab="today" class="tab is-active" type="button">Today</button>
+					<button data-tab="handled" class="tab" type="button">Handled</button>
+					<button data-tab="knows" class="tab" type="button">Alfy knows</button>
+				</div>
+			</nav>
+		</header>
+
+		<p class="mx-auto mt-6 flex max-w-3xl flex-wrap items-center gap-3 px-6">
+			<span class="rounded-full border border-hairline bg-card px-3 py-1 text-small text-muted">
+				Example data — this is the web view your texts come with
+			</span>
+			<a
+				href={import.meta.env.PUBLIC_ALFY_APP_URL ?? 'http://localhost:5173/alfy/today'}
+				class="text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso"
+			>
+				Already use Alfy? Sign in to the real thing →
+			</a>
+		</p>
+
+		<main class="mx-auto max-w-3xl px-6 py-8">
+			<!-- TODAY -->
+			<section id="panel-today" class="panel space-y-6">
+				<div class="rounded-3xl border border-hairline bg-card p-6 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.12)]">
+					<p class="label-caps text-muted">The brief</p>
+					<p class="mt-3 text-body text-espresso">
+						Morning. Three things need your yes, and I'm watching two more.
+						Nothing's urgent before noon.
+						<br />
+						<span class="text-secondary">— A</span>
+					</p>
+				</div>
+
+				<div class="space-y-4">
+					{
+						queue.map((item) => (
+							<div class="q-card card-lift rounded-3xl border border-hairline bg-card p-5 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.12)]">
+								<p class="label-caps text-muted">{item.kind}</p>
+								<h2 class="mt-2 font-display text-h2 font-medium">{item.summary}</h2>
+								<p class="mt-2 rounded-2xl border border-hairline bg-linen px-4 py-3 text-body text-secondary">
+									{item.draft}
+								</p>
+								<div class="mt-4 flex gap-2">
+									<button
+										type="button"
+										class="q-approve min-h-11 cursor-pointer rounded-full bg-marigold px-5 text-small font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+									>
+										Approve
+									</button>
+									<button
+										type="button"
+										class="min-h-11 cursor-pointer rounded-full border border-hairline px-5 text-small font-medium text-espresso transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+									>
+										Edit
+									</button>
+									<button
+										type="button"
+										class="q-skip min-h-11 cursor-pointer rounded-full px-5 text-small font-medium text-secondary transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+									>
+										Skip
+									</button>
+								</div>
+							</div>
+						))
+					}
+				</div>
+
+				<div class="rounded-3xl border border-hairline bg-card p-6">
+					<p class="label-caps text-muted">Watching</p>
+					<ul class="mt-3 space-y-2">
+						{watching.map((w) => <li class="text-body text-secondary">{w}</li>)}
+					</ul>
+				</div>
+			</section>
+
+			<!-- HANDLED -->
+			<section id="panel-handled" class="panel hidden space-y-6">
+				<div class="flex items-baseline justify-between">
+					<p class="text-body text-secondary">This week</p>
+					<p class="text-small text-muted">14 handled · 12 with your yes · 2 standing</p>
+				</div>
+				<div class="rounded-3xl border border-hairline bg-card p-6 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.12)]">
+					<ul class="divide-y divide-hairline">
+						{
+							handled.map((row) => (
+								<li class="flex items-start gap-3 py-4">
+									<span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-fern-tint text-fern" aria-hidden="true">
+										<svg class="h-3 w-3" viewBox="0 0 16 16" fill="none">
+											<path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+										</svg>
+									</span>
+									<div class="flex-1">
+										<p class="text-body text-espresso">{row.what}</p>
+										<p class="text-small text-muted">{row.when}</p>
+									</div>
+									{row.undo && (
+										<button type="button" class="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso">
+											undo
+										</button>
+									)}
+								</li>
+							))
+						}
+					</ul>
+				</div>
+				<p class="text-small text-muted">Weekly totals roll into your Sunday digest.</p>
+			</section>
+
+			<!-- ALFY KNOWS -->
+			<section id="panel-knows" class="panel hidden space-y-6">
+				<div class="rounded-3xl border border-hairline bg-card p-6 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.12)]">
+					<p class="label-caps text-muted">People</p>
+					<ul class="mt-3 divide-y divide-hairline">
+						{
+							people.map((p) => (
+								<li class="flex items-baseline justify-between gap-4 py-3">
+									<p class="text-body text-espresso">
+										<span class="font-medium">{p.name}</span>
+										<span class="text-secondary"> — {p.note}</span>
+									</p>
+									<button type="button" class="cursor-pointer text-small font-medium text-secondary underline decoration-hairline underline-offset-4 hover:text-espresso">
+										edit
+									</button>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+
+				<div class="rounded-3xl border border-fern/20 bg-fern-tint/40 p-6">
+					<p class="label-caps text-fern">Trust</p>
+					<ul class="mt-3 space-y-3">
+						{
+							trust.map((t) => (
+								<li class="text-body text-espresso">
+									{t.line}
+									<span class="text-secondary"> — {t.since} · </span>
+									<button type="button" class="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso">
+										revoke
+									</button>
+								</li>
+							))
+						}
+						<li class="text-body text-secondary">Everything else waits for your yes.</li>
+					</ul>
+				</div>
+
+				<div class="rounded-3xl border border-hairline bg-card p-6">
+					<label for="about" class="label-caps text-muted">Tell Alfy about yourself</label>
+					<textarea
+						id="about"
+						rows="3"
+						class="mt-3 w-full resize-none rounded-2xl border border-hairline bg-linen px-4 py-3 text-body text-espresso placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+						placeholder="Plain words. Anything that helps — who matters, what you always forget, how you like things done."></textarea>
+				</div>
+			</section>
+
+			<!-- SETTINGS (behind the gear, deliberately boring) -->
+			<section id="settings" class="hidden mt-8 rounded-3xl border border-hairline bg-card p-6" aria-label="Settings">
+				<p class="label-caps text-muted">Settings</p>
+				<ul class="mt-3 divide-y divide-hairline text-body">
+					<li class="flex items-center justify-between py-3">
+						<span class="text-espresso">Connections</span>
+						<span class="text-small text-secondary">Google — connected</span>
+					</li>
+					<li class="flex items-center justify-between py-3">
+						<span class="text-espresso">Billing</span>
+						<span class="text-small text-secondary">manage</span>
+					</li>
+					<li class="flex items-center justify-between py-3">
+						<span class="text-espresso">Quiet hours</span>
+						<span class="text-small text-secondary">9pm – 7am</span>
+					</li>
+					<li class="flex items-center justify-between py-3">
+						<span class="text-espresso">Export everything</span>
+						<span class="text-small text-secondary">one file, yours</span>
+					</li>
+					<li class="flex items-center justify-between py-3">
+						<span class="text-espresso">Cancel</span>
+						<span class="text-small text-secondary">one click, or just text "cancel"</span>
+					</li>
+				</ul>
+			</section>
+		</main>
+	</div>
+</Layout>
+
+<style>
+	.tab {
+		cursor: pointer;
+		padding: 0.625rem 1rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: #5c554a;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;
+		transition:
+			color 0.15s,
+			border-color 0.15s;
+	}
+	.tab:hover {
+		color: #2e2a24;
+	}
+	.tab.is-active {
+		color: #2e2a24;
+		border-bottom-color: #e08a2e;
+	}
+</style>
+
+<script>
+	// Tabs
+	const tabs = [...document.querySelectorAll<HTMLButtonElement>('.tab')];
+	const panels: Record<string, HTMLElement | null> = {
+		today: document.getElementById('panel-today'),
+		handled: document.getElementById('panel-handled'),
+		knows: document.getElementById('panel-knows'),
+	};
+	tabs.forEach((tab) => {
+		tab.addEventListener('click', () => {
+			tabs.forEach((t) => t.classList.toggle('is-active', t === tab));
+			Object.entries(panels).forEach(([key, panel]) =>
+				panel?.classList.toggle('hidden', key !== tab.dataset.tab)
+			);
+			document.getElementById('settings')?.classList.add('hidden');
+			document.getElementById('gear')?.setAttribute('aria-expanded', 'false');
+		});
+	});
+
+	// Gear
+	const gear = document.getElementById('gear');
+	gear?.addEventListener('click', () => {
+		const s = document.getElementById('settings');
+		const open = s?.classList.toggle('hidden') === false;
+		gear.setAttribute('aria-expanded', String(open));
+	});
+
+	// Demo approvals: Approve → fern-approved state; Skip → card leaves.
+	document.querySelectorAll<HTMLElement>('.q-card').forEach((card) => {
+		card.querySelector('.q-approve')?.addEventListener('click', () => {
+			const btns = card.querySelectorAll('button');
+			btns.forEach((b) => ((b as HTMLButtonElement).disabled = true));
+			const approve = card.querySelector('.q-approve') as HTMLElement;
+			approve.textContent = 'Approved';
+			approve.classList.remove('bg-marigold', 'text-on-marigold', 'hover:bg-[#C97923]');
+			approve.classList.add('bg-fern', 'text-on-fern');
+			card.classList.add('border-fern/20');
+		});
+		card.querySelector('.q-skip')?.addEventListener('click', () => {
+			card.style.transition = 'opacity .3s, transform .3s';
+			card.style.opacity = '0';
+			card.style.transform = 'translateY(-8px)';
+			setTimeout(() => card.remove(), 320);
+		});
+	});
+</script>

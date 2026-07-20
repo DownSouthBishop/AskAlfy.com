@@ -1,0 +1,58 @@
+---
+// Marquee of things Alfy handled — plain words, endless loop.
+const items = [
+	'confirmed a dentist appointment',
+	'found a birthday gift',
+	'chased a refund',
+	'booked a table for four',
+	'moved a meeting politely',
+	'paid the wifi bill',
+	'renewed a prescription',
+	'found cheaper car insurance',
+];
+---
+
+<section id="ledger" aria-label="Things Alfy handled this week" class="border-y border-hairline bg-card py-5">
+	<div class="marquee-mask overflow-hidden">
+		<div class="marquee flex w-max items-center gap-3 whitespace-nowrap">
+			{
+				[0, 1].map((copy) => (
+					<ul
+						class="flex items-center gap-3 pr-3"
+						aria-hidden={copy === 1 ? 'true' : undefined}
+					>
+						<li class="label-caps text-muted">This week Alfy</li>
+						{items.map((item) => (
+							<li class="flex items-center gap-3 text-small text-secondary">
+								<span class="h-1 w-1 rounded-full bg-marigold" aria-hidden="true" />
+								{item}
+							</li>
+						))}
+					</ul>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	@keyframes marquee {
+		to {
+			transform: translateX(-50%);
+		}
+	}
+	.marquee {
+		animation: marquee 40s linear infinite;
+	}
+	.marquee-mask {
+		mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+	}
+	.marquee-mask:hover .marquee {
+		animation-play-state: paused;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.marquee {
+			animation: none;
+		}
+	}
+</style>

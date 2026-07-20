@@ -4,19 +4,26 @@ import QRCode from './QRCode.astro';
 import { SMS_URI } from '../lib/config';
 ---
 
-<section class="mx-auto flex min-h-[70vh] max-w-6xl items-center px-6 py-12">
+<section class="relative mx-auto flex min-h-[70vh] max-w-6xl items-center overflow-hidden px-6 py-12">
+	<span
+		aria-hidden="true"
+		class="pointer-events-none absolute -right-10 -bottom-24 -z-10 font-display text-[18rem] leading-none font-semibold text-espresso/[0.035] select-none"
+	>
+		— A
+	</span>
 	<div class="grid w-full items-start gap-12 lg:grid-cols-2 lg:gap-16">
 		<div class="space-y-6">
 			<h1 class="hero-headline font-display text-display font-semibold text-balance">
 				Everyone gets an assistant.
 			</h1>
 			<p class="hero-fade max-w-md text-body text-secondary">
-				Alfy handles the things you'd forget — and asks before anything sends.
-				Works on any phone that can text.
+				Alfy is a phone number. Text it the things you'd forget — it asks
+				before anything sends, and it works on anything that can text.
 			</p>
 			<div class="hero-fade flex flex-wrap items-center gap-6">
 				<a
 					href={SMS_URI}
+					id="hero-cta"
 					class="cursor-pointer rounded-full bg-marigold px-6 py-3 text-body font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
 				>
 					Text Alfy
@@ -30,10 +37,12 @@ import { SMS_URI } from '../lib/config';
 			</div>
 			<p class="hero-fade text-small text-muted">
 				No app to install. Nothing sends without your OK.
+				<br />
+				Your first text back usually catches something you'd forgotten.
 			</p>
 		</div>
 
-		<div class="hero-fade flex justify-center lg:justify-end">
+		<div id="hero-tilt" class="hero-fade flex justify-center lg:justify-end">
 			<AlfyConversation client:load />
 		</div>
 	</div>
@@ -70,4 +79,45 @@ import { SMS_URI } from '../lib/config';
 			);
 		}
 	);
+
+	// Fine-pointer only: card tilt + magnetic CTA.
+	mm.add('(pointer: fine) and (prefers-reduced-motion: no-preference)', () => {
+		const tilt = document.getElementById('hero-tilt');
+		if (tilt) {
+			const rx = gsap.quickTo(tilt, 'rotationX', { duration: 0.4, ease: 'power2.out' });
+			const ry = gsap.quickTo(tilt, 'rotationY', { duration: 0.4, ease: 'power2.out' });
+			gsap.set(tilt, { transformPerspective: 900 });
+			tilt.addEventListener('pointermove', (e) => {
+				const r = tilt.getBoundingClientRect();
+				ry(((e.clientX - r.left) / r.width - 0.5) * 5);
+				rx(((e.clientY - r.top) / r.height - 0.5) * -5);
+			});
+			tilt.addEventListener('pointerleave', () => {
+				rx(0);
+				ry(0);
+			});
+		}
+
+		const cta = document.getElementById('hero-cta');
+		if (cta) {
+			const mx = gsap.quickTo(cta, 'x', { duration: 0.3, ease: 'power2.out' });
+			const my = gsap.quickTo(cta, 'y', { duration: 0.3, ease: 'power2.out' });
+			const zone = 70; // px of pull radius beyond the pill itself
+			window.addEventListener('pointermove', (e) => {
+				const r = cta.getBoundingClientRect();
+				const cx = r.left + r.width / 2;
+				const cy = r.top + r.height / 2;
+				const dx = e.clientX - cx;
+				const dy = e.clientY - cy;
+				const dist = Math.hypot(dx, dy);
+				if (dist < zone + r.width / 2) {
+					mx(dx * 0.18);
+					my(dy * 0.18);
+				} else {
+					mx(0);
+					my(0);
+				}
+			});
+		}
+	});
 </script>

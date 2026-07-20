@@ -1,0 +1,540 @@
+- generic [ref=f9e1]:
+  - banner [ref=f9e2]:
+    - navigation [ref=f9e3]:
+      - link "Pally home" [ref=f9e4] [cursor=pointer]:
+        - /url: /#top
+        - img "Pally" [ref=f9e5]
+      - generic [ref=f9e6]:
+        - link "Product" [ref=f9e7] [cursor=pointer]:
+          - /url: /#product
+        - link "Use Cases" [ref=f9e8] [cursor=pointer]:
+          - /url: /#use-cases
+        - link "Integrations" [ref=f9e9] [cursor=pointer]:
+          - /url: /#integrations
+        - link "Pricing" [ref=f9e10] [cursor=pointer]:
+          - /url: /#pricing
+        - link "Testimonials" [ref=f9e11] [cursor=pointer]:
+          - /url: /#testimonials
+        - link "FAQ" [ref=f9e12] [cursor=pointer]:
+          - /url: /#faq
+      - link "Text Pally" [disabled] [ref=f9e13] [cursor=pointer]:
+        - /url: "#"
+  - main [ref=f9e16]:
+    - generic [ref=f9e19]:
+      - generic [ref=f9e20]: Your personal assistant in iMessage.
+      - heading "One text away from done." [level=1] [ref=f9e21]
+      - paragraph [ref=f9e22]: Pally connects to all your inboxes and tools, and handles the things you'd forget, automatically. Try it today for free.
+      - link "Text Pally" [disabled] [ref=f9e24] [cursor=pointer]:
+        - /url: "#"
+    - generic [ref=f9e28]:
+      - generic [ref=f9e29]:
+        - heading "You have loose threads everywhere." [level=2] [ref=f9e32]
+        - paragraph [ref=f9e35]: The plan's in WhatsApp. The receipt's in Gmail. The decision's in Slack. The file's in Drive. And you're the one holding it all together.
+      - generic [ref=f9e36]:
+        - generic:
+          - generic [ref=f9e37]:
+            - generic [ref=f9e38]: WhatsApp
+            - paragraph [ref=f9e41]: Let's do Kolae at 8
+          - generic [ref=f9e42]:
+            - generic [ref=f9e43]: Gmail
+            - paragraph [ref=f9e46]: BA 117 check-in is open
+          - generic [ref=f9e47]:
+            - generic [ref=f9e48]: Slack
+            - paragraph [ref=f9e51]: Launch date moved
+          - generic [ref=f9e52]:
+            - generic [ref=f9e53]: Granola
+            - paragraph [ref=f9e56]: "Action item: send pricing"
+          - generic [ref=f9e57]:
+            - generic [ref=f9e58]: Drive
+            - paragraph [ref=f9e61]: Pricing deck final
+          - generic [ref=f9e62]:
+            - generic [ref=f9e63]: Calendar
+            - paragraph [ref=f9e66]: Flight to NYC tomorrow
+          - generic [ref=f9e67]:
+            - generic [ref=f9e68]: Linear
+            - paragraph [ref=f9e71]: Launch milestone
+          - generic [ref=f9e72]:
+            - generic [ref=f9e73]: Web
+            - paragraph [ref=f9e76]: Reservation slot available
+          - generic [ref=f9e77]:
+            - generic [ref=f9e78]: Calendar
+            - paragraph [ref=f9e81]: Mum's birthday Sunday
+          - generic [ref=f9e82]:
+            - generic [ref=f9e83]: iMessage
+            - paragraph [ref=f9e86]: Pay Jess for the tickets
+    - generic [ref=f9e87]:
+      - generic [ref=f9e91]:
+        - heading "It all comes together in Pally." [level=2] [ref=f9e92]:
+          - text: It all comes together in
+          - generic [ref=f9e93]: Pally.
+        - paragraph [ref=f9e94]: Every loose thread runs into one simple conversation. Scroll, and watch Pally handle the rest.
+      - generic [ref=f9e104]:
+        - generic [ref=f9e107]:
+          - generic [ref=f9e108]: 9:41
+          - generic [ref=f9e124]: Pally
+        - generic [ref=f9e134]: iMessage
+    - generic [ref=f9e143]:
+      - generic [ref=f9e145]:
+        - heading "The kind of help you actually need." [level=2] [ref=f9e146]
+        - paragraph [ref=f9e147]: It notices what needs doing, finds the context behind it, and gets it done. You just text it, like a person.
+      - list [ref=f9e149]:
+        - listitem [ref=f9e150]:
+          - article [ref=f9e151]:
+            - generic [ref=f9e152]:
+              - generic [ref=f9e153]: ✈️
+              - heading "Plan the trip" [level=3] [ref=f9e154]
+            - generic [ref=f9e155]:
+              - generic [ref=f9e156]: Plan a weekend in Lisbon.
+              - generic [ref=f9e157]: Flights held, hotel booked, and a 2-day itinerary's in your calendar.
+            - generic [ref=f9e158]:
+              - generic [ref=f9e159]: Gmail
+              - generic [ref=f9e160]: Calendar
+        - listitem [ref=f9e161]:
+          - article [ref=f9e162]:
+            - generic [ref=f9e163]:
+              - generic [ref=f9e164]: 💬
+              - heading "Chase the reply" [level=3] [ref=f9e165]
+            - generic [ref=f9e166]:
+              - generic [ref=f9e167]: Who hasn't replied about Friday?
+              - generic [ref=f9e168]: Just Sam and Alex. Want me to nudge them?
+            - generic [ref=f9e169]:
+              - generic [ref=f9e170]: WhatsApp
+              - generic [ref=f9e171]: Gmail
+              - generic [ref=f9e172]: Slack
+        - listitem [ref=f9e173]:
+          - article [ref=f9e174]:
+            - generic [ref=f9e175]:
+              - generic [ref=f9e176]: 🎂
+              - heading "Never miss a birthday" [level=3] [ref=f9e177]
+            - generic [ref=f9e178]:
+              - generic [ref=f9e179]: Never let me forget a birthday.
+              - generic [ref=f9e180]: Got it. Mum's is in 9 days. I'll find a gift and remind you.
+            - generic [ref=f9e181]:
+              - generic [ref=f9e182]: Calendar
+              - generic [ref=f9e183]: iMessage
+        - listitem [ref=f9e184]:
+          - article [ref=f9e185]:
+            - generic [ref=f9e186]:
+              - generic [ref=f9e187]: 📥
+              - heading "Tame the inbox" [level=3] [ref=f9e188]
+            - generic [ref=f9e189]:
+              - generic [ref=f9e190]: What actually needs a reply today?
+              - generic [ref=f9e191]: Three do. I've drafted two. Take a look?
+            - generic [ref=f9e192]:
+              - generic [ref=f9e193]: Gmail
+              - generic [ref=f9e194]: Outlook
+        - listitem [ref=f9e195]:
+          - article [ref=f9e196]:
+            - generic [ref=f9e197]:
+              - generic [ref=f9e198]: 💼
+              - heading "Move work forward" [level=3] [ref=f9e199]
+            - generic [ref=f9e200]:
+              - generic [ref=f9e201]: Turn the launch chat into tasks.
+              - generic [ref=f9e202]: Made 5 Linear tickets and posted a summary to Slack.
+            - generic [ref=f9e203]:
+              - generic [ref=f9e204]: Slack
+              - generic [ref=f9e205]: Notion
+              - generic [ref=f9e206]: Linear
+        - listitem [ref=f9e207]:
+          - article [ref=f9e208]:
+            - generic [ref=f9e209]:
+              - generic [ref=f9e210]: 🧠
+              - heading "Catch me up" [level=3] [ref=f9e211]
+            - generic [ref=f9e212]:
+              - generic [ref=f9e213]: What am I forgetting?
+              - generic [ref=f9e214]: Three things need you today. Everything else can wait.
+            - generic [ref=f9e215]:
+              - generic [ref=f9e216]: WhatsApp
+              - generic [ref=f9e217]: Gmail
+              - generic [ref=f9e218]: Calendar
+              - generic [ref=f9e219]: Linear
+    - generic [ref=f9e221]:
+      - generic [ref=f9e223]:
+        - heading "All your apps, one thread." [level=2] [ref=f9e224]
+        - paragraph [ref=f9e225]: Pally works with the tools you already live in, and it never does anything big without asking first. The point isn't more apps. It's fewer open loops.
+      - img "Pally" [ref=f9e230]
+    - generic [ref=f9e231]:
+      - generic [ref=f9e234]:
+        - generic [ref=f9e235]:
+          - generic [ref=f9e239]: "0"
+          - text: things handled this week
+        - heading "People who let Pally run their week." [level=2] [ref=f9e240]
+      - generic [ref=f9e241]:
+        - generic [ref=f9e243]:
+          - figure "Naomi Clarke Naomi Clarke Always packing a bag" [ref=f9e244]:
+            - generic [ref=f9e245]: Told it to sort a long weekend in Lisbon while I was half asleep. Woke up to flights on hold and a two-day plan already in my calendar.
+            - generic [ref=f9e246]:
+              - img "Naomi Clarke" [ref=f9e247]
+              - generic [ref=f9e248]:
+                - generic [ref=f9e249]: Naomi Clarke
+                - generic [ref=f9e250]: Always packing a bag
+          - figure "Marcus Bell Marcus Bell Captains the five-a-side" [ref=f9e251]:
+            - generic [ref=f9e252]: I captain a five-a-side team of 14 who never reply. Now I just ask who's in for Thursday and Pally chases the stragglers itself.
+            - generic [ref=f9e253]:
+              - img "Marcus Bell" [ref=f9e254]
+              - generic [ref=f9e255]:
+                - generic [ref=f9e256]: Marcus Bell
+                - generic [ref=f9e257]: Captains the five-a-side
+          - figure "Grace Lin Grace Lin Founder, two under five" [ref=f9e258]:
+            - generic [ref=f9e259]: Every Sunday I text 'what am I forgetting?' and it surfaces the two or three things buried across WhatsApp and email I'd have genuinely dropped.
+            - generic [ref=f9e260]:
+              - img "Grace Lin" [ref=f9e261]
+              - generic [ref=f9e262]:
+                - generic [ref=f9e263]: Grace Lin
+                - generic [ref=f9e264]: Founder, two under five
+          - figure "Tom Wallace Tom Wallace Account exec" [ref=f9e265]:
+            - generic [ref=f9e266]: Pally dug the Q3 deck out of my Drive, drafted the email to the client, and just waited for me to say send. Saved me an hour I didn't have.
+            - generic [ref=f9e267]:
+              - img "Tom Wallace" [ref=f9e268]
+              - generic [ref=f9e269]:
+                - generic [ref=f9e270]: Tom Wallace
+                - generic [ref=f9e271]: Account exec
+          - figure "Priya Desai Priya Desai Mum of three" [ref=f9e272]:
+            - generic [ref=f9e273]: "Booked the whole family holiday: flights, a villa with a pool, and car hire, all in one thread while I was making the kids' dinner."
+            - generic [ref=f9e274]:
+              - img "Priya Desai" [ref=f9e275]
+              - generic [ref=f9e276]:
+                - generic [ref=f9e277]: Priya Desai
+                - generic [ref=f9e278]: Mum of three
+          - figure "Diego Fuentes Diego Fuentes Freelance designer" [ref=f9e279]:
+            - generic [ref=f9e280]: It chased an overdue invoice for me across two weeks, polite but persistent, and I never had to write a single awkward email.
+            - generic [ref=f9e281]:
+              - img "Diego Fuentes" [ref=f9e282]
+              - generic [ref=f9e283]:
+                - generic [ref=f9e284]: Diego Fuentes
+                - generic [ref=f9e285]: Freelance designer
+          - figure "Emma Bryce Emma Bryce Runs ops" [ref=f9e286]:
+            - generic [ref=f9e287]: Finding a time for six people used to eat a whole afternoon. Now Pally does the back-and-forth and just drops it in everyone's calendar.
+            - generic [ref=f9e288]:
+              - img "Emma Bryce" [ref=f9e289]
+              - generic [ref=f9e290]:
+                - generic [ref=f9e291]: Emma Bryce
+                - generic [ref=f9e292]: Runs ops
+          - figure "David Kim David Kim Hopeless with dates" [ref=f9e293]:
+            - generic [ref=f9e294]: Reminded me about our anniversary a week out instead of the night before, then booked the restaurant I could never remember the name of.
+            - generic [ref=f9e295]:
+              - img "David Kim" [ref=f9e296]
+              - generic [ref=f9e297]:
+                - generic [ref=f9e298]: David Kim
+                - generic [ref=f9e299]: Hopeless with dates
+          - figure "Naomi Clarke Naomi Clarke Always packing a bag" [ref=f9e300]:
+            - generic [ref=f9e301]: Told it to sort a long weekend in Lisbon while I was half asleep. Woke up to flights on hold and a two-day plan already in my calendar.
+            - generic [ref=f9e302]:
+              - img "Naomi Clarke" [ref=f9e303]
+              - generic [ref=f9e304]:
+                - generic [ref=f9e305]: Naomi Clarke
+                - generic [ref=f9e306]: Always packing a bag
+          - figure "Marcus Bell Marcus Bell Captains the five-a-side" [ref=f9e307]:
+            - generic [ref=f9e308]: I captain a five-a-side team of 14 who never reply. Now I just ask who's in for Thursday and Pally chases the stragglers itself.
+            - generic [ref=f9e309]:
+              - img "Marcus Bell" [ref=f9e310]
+              - generic [ref=f9e311]:
+                - generic [ref=f9e312]: Marcus Bell
+                - generic [ref=f9e313]: Captains the five-a-side
+          - figure "Grace Lin Grace Lin Founder, two under five" [ref=f9e314]:
+            - generic [ref=f9e315]: Every Sunday I text 'what am I forgetting?' and it surfaces the two or three things buried across WhatsApp and email I'd have genuinely dropped.
+            - generic [ref=f9e316]:
+              - img "Grace Lin" [ref=f9e317]
+              - generic [ref=f9e318]:
+                - generic [ref=f9e319]: Grace Lin
+                - generic [ref=f9e320]: Founder, two under five
+          - figure "Tom Wallace Tom Wallace Account exec" [ref=f9e321]:
+            - generic [ref=f9e322]: Pally dug the Q3 deck out of my Drive, drafted the email to the client, and just waited for me to say send. Saved me an hour I didn't have.
+            - generic [ref=f9e323]:
+              - img "Tom Wallace" [ref=f9e324]
+              - generic [ref=f9e325]:
+                - generic [ref=f9e326]: Tom Wallace
+                - generic [ref=f9e327]: Account exec
+          - figure "Priya Desai Priya Desai Mum of three" [ref=f9e328]:
+            - generic [ref=f9e329]: "Booked the whole family holiday: flights, a villa with a pool, and car hire, all in one thread while I was making the kids' dinner."
+            - generic [ref=f9e330]:
+              - img "Priya Desai" [ref=f9e331]
+              - generic [ref=f9e332]:
+                - generic [ref=f9e333]: Priya Desai
+                - generic [ref=f9e334]: Mum of three
+          - figure "Diego Fuentes Diego Fuentes Freelance designer" [ref=f9e335]:
+            - generic [ref=f9e336]: It chased an overdue invoice for me across two weeks, polite but persistent, and I never had to write a single awkward email.
+            - generic [ref=f9e337]:
+              - img "Diego Fuentes" [ref=f9e338]
+              - generic [ref=f9e339]:
+                - generic [ref=f9e340]: Diego Fuentes
+                - generic [ref=f9e341]: Freelance designer
+          - figure "Emma Bryce Emma Bryce Runs ops" [ref=f9e342]:
+            - generic [ref=f9e343]: Finding a time for six people used to eat a whole afternoon. Now Pally does the back-and-forth and just drops it in everyone's calendar.
+            - generic [ref=f9e344]:
+              - img "Emma Bryce" [ref=f9e345]
+              - generic [ref=f9e346]:
+                - generic [ref=f9e347]: Emma Bryce
+                - generic [ref=f9e348]: Runs ops
+          - figure "David Kim David Kim Hopeless with dates" [ref=f9e349]:
+            - generic [ref=f9e350]: Reminded me about our anniversary a week out instead of the night before, then booked the restaurant I could never remember the name of.
+            - generic [ref=f9e351]:
+              - img "David Kim" [ref=f9e352]
+              - generic [ref=f9e353]:
+                - generic [ref=f9e354]: David Kim
+                - generic [ref=f9e355]: Hopeless with dates
+        - generic [ref=f9e357]:
+          - figure "Sofia Reyes Sofia Reyes Referees the group chat" [ref=f9e358]:
+            - generic [ref=f9e359]: Our group chat spent four days arguing about where to eat. I forwarded the lot to Pally and it booked the one place everyone had agreed on.
+            - generic [ref=f9e360]:
+              - img "Sofia Reyes" [ref=f9e361]
+              - generic [ref=f9e362]:
+                - generic [ref=f9e363]: Sofia Reyes
+                - generic [ref=f9e364]: Referees the group chat
+          - figure "Mark Sutton Mark Sutton Solicitor, allergic to email" [ref=f9e365]:
+            - generic [ref=f9e366]: Came back from two weeks off to 600 emails. Pally pointed me at the four that mattered and had three replies already drafted.
+            - generic [ref=f9e367]:
+              - img "Mark Sutton" [ref=f9e368]
+              - generic [ref=f9e369]:
+                - generic [ref=f9e370]: Mark Sutton
+                - generic [ref=f9e371]: Solicitor, allergic to email
+          - figure "Layla Hassan Layla Hassan Back-to-back all day" [ref=f9e372]:
+            - generic [ref=f9e373]: It quietly takes notes in my meetings, and by the time I'm out the follow-ups are drafted and the action points are sitting in Notion.
+            - generic [ref=f9e374]:
+              - img "Layla Hassan" [ref=f9e375]
+              - generic [ref=f9e376]:
+                - generic [ref=f9e377]: Layla Hassan
+                - generic [ref=f9e378]: Back-to-back all day
+          - figure "Arjun Nair Arjun Nair Big family, worse memory" [ref=f9e379]:
+            - generic [ref=f9e380]: It flagged my sister's birthday nine days out, found a gift she'd actually love, and ordered it the second I said go. First year I wasn't grovelling.
+            - generic [ref=f9e381]:
+              - img "Arjun Nair" [ref=f9e382]
+              - generic [ref=f9e383]:
+                - generic [ref=f9e384]: Arjun Nair
+                - generic [ref=f9e385]: Big family, worse memory
+          - figure "Bianca Santos Bianca Santos Two jobs, one brain" [ref=f9e386]:
+            - generic [ref=f9e387]: Mondays used to start in a blind panic. Now I text Pally and it tells me the three things that genuinely need me before 10.
+            - generic [ref=f9e388]:
+              - img "Bianca Santos" [ref=f9e389]
+              - generic [ref=f9e390]:
+                - generic [ref=f9e391]: Bianca Santos
+                - generic [ref=f9e392]: Two jobs, one brain
+          - figure "Omar Haddad Omar Haddad Hates life admin" [ref=f9e393]:
+            - generic [ref=f9e394]: It spotted my car insurance was about to auto-renew £210 dearer, found a cheaper quote, and nudged me to switch before the deadline.
+            - generic [ref=f9e395]:
+              - img "Omar Haddad" [ref=f9e396]
+              - generic [ref=f9e397]:
+                - generic [ref=f9e398]: Omar Haddad
+                - generic [ref=f9e399]: Hates life admin
+          - figure "Claire Whitfield Claire Whitfield Product lead, Series B" [ref=f9e400]:
+            - generic [ref=f9e401]: Our launch channel is chaos by Friday. I tell Pally to make sense of it and it turns the thread into Linear tickets and posts a clean summary to Slack.
+            - generic [ref=f9e402]:
+              - img "Claire Whitfield" [ref=f9e403]
+              - generic [ref=f9e404]:
+                - generic [ref=f9e405]: Claire Whitfield
+                - generic [ref=f9e406]: Product lead, Series B
+          - figure "Jack Donnelly Jack Donnelly Terrible texter" [ref=f9e407]:
+            - generic [ref=f9e408]: I'd left a mate on read for a week. Pally reminded me, drafted something that sounded like me, and I just tweaked it. Friendship intact.
+            - generic [ref=f9e409]:
+              - img "Jack Donnelly" [ref=f9e410]
+              - generic [ref=f9e411]:
+                - generic [ref=f9e412]: Jack Donnelly
+                - generic [ref=f9e413]: Terrible texter
+          - figure "Sofia Reyes Sofia Reyes Referees the group chat" [ref=f9e414]:
+            - generic [ref=f9e415]: Our group chat spent four days arguing about where to eat. I forwarded the lot to Pally and it booked the one place everyone had agreed on.
+            - generic [ref=f9e416]:
+              - img "Sofia Reyes" [ref=f9e417]
+              - generic [ref=f9e418]:
+                - generic [ref=f9e419]: Sofia Reyes
+                - generic [ref=f9e420]: Referees the group chat
+          - figure "Mark Sutton Mark Sutton Solicitor, allergic to email" [ref=f9e421]:
+            - generic [ref=f9e422]: Came back from two weeks off to 600 emails. Pally pointed me at the four that mattered and had three replies already drafted.
+            - generic [ref=f9e423]:
+              - img "Mark Sutton" [ref=f9e424]
+              - generic [ref=f9e425]:
+                - generic [ref=f9e426]: Mark Sutton
+                - generic [ref=f9e427]: Solicitor, allergic to email
+          - figure "Layla Hassan Layla Hassan Back-to-back all day" [ref=f9e428]:
+            - generic [ref=f9e429]: It quietly takes notes in my meetings, and by the time I'm out the follow-ups are drafted and the action points are sitting in Notion.
+            - generic [ref=f9e430]:
+              - img "Layla Hassan" [ref=f9e431]
+              - generic [ref=f9e432]:
+                - generic [ref=f9e433]: Layla Hassan
+                - generic [ref=f9e434]: Back-to-back all day
+          - figure "Arjun Nair Arjun Nair Big family, worse memory" [ref=f9e435]:
+            - generic [ref=f9e436]: It flagged my sister's birthday nine days out, found a gift she'd actually love, and ordered it the second I said go. First year I wasn't grovelling.
+            - generic [ref=f9e437]:
+              - img "Arjun Nair" [ref=f9e438]
+              - generic [ref=f9e439]:
+                - generic [ref=f9e440]: Arjun Nair
+                - generic [ref=f9e441]: Big family, worse memory
+          - figure "Bianca Santos Bianca Santos Two jobs, one brain" [ref=f9e442]:
+            - generic [ref=f9e443]: Mondays used to start in a blind panic. Now I text Pally and it tells me the three things that genuinely need me before 10.
+            - generic [ref=f9e444]:
+              - img "Bianca Santos" [ref=f9e445]
+              - generic [ref=f9e446]:
+                - generic [ref=f9e447]: Bianca Santos
+                - generic [ref=f9e448]: Two jobs, one brain
+          - figure "Omar Haddad Omar Haddad Hates life admin" [ref=f9e449]:
+            - generic [ref=f9e450]: It spotted my car insurance was about to auto-renew £210 dearer, found a cheaper quote, and nudged me to switch before the deadline.
+            - generic [ref=f9e451]:
+              - img "Omar Haddad" [ref=f9e452]
+              - generic [ref=f9e453]:
+                - generic [ref=f9e454]: Omar Haddad
+                - generic [ref=f9e455]: Hates life admin
+          - figure "Claire Whitfield Claire Whitfield Product lead, Series B" [ref=f9e456]:
+            - generic [ref=f9e457]: Our launch channel is chaos by Friday. I tell Pally to make sense of it and it turns the thread into Linear tickets and posts a clean summary to Slack.
+            - generic [ref=f9e458]:
+              - img "Claire Whitfield" [ref=f9e459]
+              - generic [ref=f9e460]:
+                - generic [ref=f9e461]: Claire Whitfield
+                - generic [ref=f9e462]: Product lead, Series B
+          - figure "Jack Donnelly Jack Donnelly Terrible texter" [ref=f9e463]:
+            - generic [ref=f9e464]: I'd left a mate on read for a week. Pally reminded me, drafted something that sounded like me, and I just tweaked it. Friendship intact.
+            - generic [ref=f9e465]:
+              - img "Jack Donnelly" [ref=f9e466]
+              - generic [ref=f9e467]:
+                - generic [ref=f9e468]: Jack Donnelly
+                - generic [ref=f9e469]: Terrible texter
+    - generic [ref=f9e471]:
+      - generic [ref=f9e473]:
+        - paragraph [ref=f9e474]: Pricing
+        - heading "Start free. Add more life when you're ready." [level=2] [ref=f9e475]
+        - paragraph [ref=f9e476]: Text Pally to start. Upgrades happen right in chat.
+      - generic [ref=f9e477]:
+        - article [ref=f9e478]:
+          - generic [ref=f9e479]:
+            - paragraph [ref=f9e481]: Free
+            - heading "Meet your Pally." [level=3] [ref=f9e482]
+            - paragraph [ref=f9e484]: $0
+            - link "Text Pally" [disabled] [ref=f9e486] [cursor=pointer]:
+              - /url: "#"
+            - paragraph [ref=f9e489]: Text Pally like you'd text a friend. Connect three apps and get a daily brief that actually knows your life.
+            - list [ref=f9e491]:
+              - listitem [ref=f9e492]:
+                - generic [ref=f9e495]: Unlimited conversation, right in iMessage
+              - listitem [ref=f9e496]:
+                - generic [ref=f9e499]: "Connect 3 apps: iMessage, WhatsApp, Gmail, Outlook, Slack, Google Calendar, Granola, Notion, Linear, or Drive"
+              - listitem [ref=f9e500]:
+                - generic [ref=f9e503]: Daily morning brief and important-message alerts from your connected apps
+              - listitem [ref=f9e504]:
+                - generic [ref=f9e507]: A daily suggestion for your smartest next move
+              - listitem [ref=f9e508]:
+                - generic [ref=f9e511]: 3 custom automations ("text me when my landlord emails")
+              - listitem [ref=f9e512]:
+                - generic [ref=f9e515]: Let your Pally talk to other Pallys to get things done together
+              - listitem [ref=f9e516]:
+                - generic [ref=f9e519]: "Memory that compounds: Pally remembers the people, plans, and details in your life"
+              - listitem [ref=f9e520]:
+                - generic [ref=f9e523]: Tasks and reminders
+        - article [ref=f9e524]:
+          - generic [ref=f9e525]:
+            - generic [ref=f9e526]:
+              - paragraph [ref=f9e527]: Pro
+              - generic [ref=f9e528]: Most people pick Pro
+            - heading "Pally across your whole life." [level=3] [ref=f9e529]
+            - generic [ref=f9e530]:
+              - paragraph [ref=f9e531]: $25/mo
+              - paragraph [ref=f9e532]: or $250/yr - 2 months free
+            - link "Text Pally" [disabled] [ref=f9e534] [cursor=pointer]:
+              - /url: "#"
+            - paragraph [ref=f9e537]: Connect everything. Pally watches all your channels and keeps you ahead of what matters.
+            - list [ref=f9e539]:
+              - listitem [ref=f9e540]:
+                - generic [ref=f9e543]: Everything in Free
+              - listitem [ref=f9e544]:
+                - generic [ref=f9e547]: "Connect all your apps: iMessage, email, WhatsApp, Slack, calendar, meetings, docs"
+              - listitem [ref=f9e548]:
+                - generic [ref=f9e551]: One morning brief across everything, every day
+              - listitem [ref=f9e552]:
+                - generic [ref=f9e555]: 10 custom automations
+              - listitem [ref=f9e556]:
+                - generic [ref=f9e559]: "Web research: Pally digs through the web for real answers (10 deep research tasks a month)"
+        - article [ref=f9e560]:
+          - generic [ref=f9e561]:
+            - paragraph [ref=f9e563]: Max
+            - heading "Replace your executive assistant." [level=3] [ref=f9e564]
+            - generic [ref=f9e565]:
+              - paragraph [ref=f9e566]: $200/mo
+              - paragraph [ref=f9e567]: or $2,000/yr - 2 months free
+            - link "Text Pally" [disabled] [ref=f9e569] [cursor=pointer]:
+              - /url: "#"
+            - paragraph [ref=f9e572]: A real assistant with its own phone number and email address. Hand it errands; it gets them done in the real world.
+            - list [ref=f9e574]:
+              - listitem [ref=f9e575]:
+                - generic [ref=f9e578]: Everything in Pro
+              - listitem [ref=f9e579]:
+                - generic [ref=f9e582]: "A dedicated phone number: call your Pally directly"
+              - listitem [ref=f9e583]:
+                - generic [ref=f9e586]: "Pally makes calls for you: books the table, chases the contractor, gets the quote"
+              - listitem [ref=f9e587]:
+                - generic [ref=f9e590]: Its own email address for handling correspondence on your behalf
+              - listitem [ref=f9e591]:
+                - generic [ref=f9e594]: "Completes things on the web for you: bookings and purchases, always with your approval"
+              - listitem [ref=f9e595]:
+                - generic [ref=f9e598]: 50 deep research tasks a month
+              - listitem [ref=f9e599]:
+                - generic [ref=f9e602]: Unlimited custom automations
+              - listitem [ref=f9e603]:
+                - generic [ref=f9e606]: Priority processing and early access to new features
+      - paragraph [ref=f9e607]: Every plan runs on the best foundation models, and every plan includes unlimited conversation, subject to fair use. Free is the same Pally as Max; upgrading unlocks more of your life, never a smarter assistant. Automations and research run within generous monthly allowances; Pally will always tell you if you reach one.
+    - generic [ref=f9e610]:
+      - generic [ref=f9e612]:
+        - paragraph [ref=f9e613]: FAQ
+        - heading "A few practical details." [level=2] [ref=f9e614]
+      - generic [ref=f9e615]:
+        - group [ref=f9e616]:
+          - generic "What is Pally? +" [ref=f9e617] [cursor=pointer]:
+            - text: What is Pally?
+            - generic [ref=f9e618]: +
+          - paragraph [ref=f9e619]: Pally is a personal assistant that lives in iMessage. You text it like a sharp, capable friend, not a chatbot. It remembers what matters, follows up at the right time, researches things properly, reaches people, and quietly handles the busywork that would otherwise slip. The more you use it, the more personal and proactive it gets.
+        - group [ref=f9e620]:
+          - generic "Is Pally free? +" [ref=f9e621] [cursor=pointer]:
+            - text: Is Pally free?
+            - generic [ref=f9e622]: +
+        - group [ref=f9e623]:
+          - generic "Do I need an iPhone? +" [ref=f9e624] [cursor=pointer]:
+            - text: Do I need an iPhone?
+            - generic [ref=f9e625]: +
+        - group [ref=f9e626]:
+          - generic "What does Pally connect to? +" [ref=f9e627] [cursor=pointer]:
+            - text: What does Pally connect to?
+            - generic [ref=f9e628]: +
+        - group [ref=f9e629]:
+          - generic "Can Pally act for me? +" [ref=f9e630] [cursor=pointer]:
+            - text: Can Pally act for me?
+            - generic [ref=f9e631]: +
+        - group [ref=f9e632]:
+          - generic "How is Pally different from a chatbot? +" [ref=f9e633] [cursor=pointer]:
+            - text: How is Pally different from a chatbot?
+            - generic [ref=f9e634]: +
+        - group [ref=f9e635]:
+          - generic "Is Pally private? +" [ref=f9e636] [cursor=pointer]:
+            - text: Is Pally private?
+            - generic [ref=f9e637]: +
+        - group [ref=f9e638]:
+          - generic "How do I get started? +" [ref=f9e639] [cursor=pointer]:
+            - text: How do I get started?
+            - generic [ref=f9e640]: +
+    - generic [ref=f9e644]:
+      - heading "Stay on top of... Everything." [level=2] [ref=f9e647]
+      - paragraph [ref=f9e648]: Pally keeps up with the details and helps you get the next thing done right from iMessage.
+      - generic [ref=f9e649]: What am I forgetting today?
+      - link "Text Pally" [disabled] [ref=f9e656] [cursor=pointer]:
+        - /url: "#"
+    - generic [ref=f9e660]:
+      - generic [ref=f9e661]:
+        - generic [ref=f9e662]:
+          - img "Pally" [ref=f9e663]
+          - paragraph [ref=f9e664]: One text away from done.
+          - link "Text Pally" [disabled] [ref=f9e666] [cursor=pointer]:
+            - /url: "#"
+        - navigation "Explore" [ref=f9e669]:
+          - paragraph [ref=f9e670]: Explore
+          - link "Story" [ref=f9e671] [cursor=pointer]:
+            - /url: /story
+          - link "What's New" [ref=f9e672] [cursor=pointer]:
+            - /url: /whats-new
+          - link "Pricing" [ref=f9e673] [cursor=pointer]:
+            - /url: /#pricing
+          - link "Brand" [ref=f9e674] [cursor=pointer]:
+            - /url: /brand
+          - link "Careers" [ref=f9e675] [cursor=pointer]:
+            - /url: /careers
+          - link "Privacy" [ref=f9e676] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms" [ref=f9e677] [cursor=pointer]:
+            - /url: /terms
+      - generic [ref=f9e678]:
+        - generic [ref=f9e679]: © 2026 Pally Technologies, Inc
+        - generic [ref=f9e680]: Made to keep your thread.

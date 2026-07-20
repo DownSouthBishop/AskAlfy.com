@@ -5,9 +5,13 @@ type Step = 'user' | 'reply' | 'approval' | 'handover';
 
 const steps: Step[] = ['user', 'reply', 'approval', 'handover'];
 
+type ApprovalChoice = null | 'sent' | 'edit' | 'skip';
+type HandoverChoice = null | 'yes' | 'notyet';
+
 export default function AlfyConversation() {
 	const [visible, setVisible] = useState(0);
-	const [approvalDone, setApprovalDone] = useState(false);
+	const [approval, setApproval] = useState<ApprovalChoice>(null);
+	const [handover, setHandover] = useState<HandoverChoice>(null);
 
 	useEffect(() => {
 		if (visible >= steps.length) return;
@@ -68,25 +72,39 @@ export default function AlfyConversation() {
 							<div className="flex gap-2">
 								<button
 									type="button"
-									onClick={() => setApprovalDone(true)}
-									disabled={approvalDone}
+									onClick={() => setApproval('sent')}
+									disabled={approval !== null}
 									className="min-h-11 flex-1 cursor-pointer rounded-full bg-marigold px-4 text-small font-medium text-on-marigold transition-colors hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso disabled:cursor-default disabled:opacity-60"
 								>
-									{approvalDone ? 'Sent' : 'Send'}
+									{approval === 'sent' ? 'Sent' : 'Send'}
 								</button>
 								<button
 									type="button"
-									className="min-h-11 flex-1 cursor-pointer rounded-full border border-hairline px-4 text-small font-medium text-espresso transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+									onClick={() => setApproval('edit')}
+									disabled={approval !== null}
+									className="min-h-11 flex-1 cursor-pointer rounded-full border border-hairline px-4 text-small font-medium text-espresso transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso disabled:cursor-default disabled:opacity-60"
 								>
-									Edit
+									{approval === 'edit' ? 'Draft open' : 'Edit'}
 								</button>
 								<button
 									type="button"
-									className="min-h-11 flex-1 cursor-pointer rounded-full px-4 text-small font-medium text-secondary transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+									onClick={() => setApproval('skip')}
+									disabled={approval !== null}
+									className="min-h-11 flex-1 cursor-pointer rounded-full px-4 text-small font-medium text-secondary transition-colors hover:bg-linen focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso disabled:cursor-default disabled:opacity-60"
 								>
-									Skip
+									{approval === 'skip' ? 'Skipped' : 'Skip'}
 								</button>
 							</div>
+							{approval === 'edit' && (
+								<p className="text-small text-secondary">
+									The draft opens right in the thread — change a word, then send.
+								</p>
+							)}
+							{approval === 'skip' && (
+								<p className="text-small text-secondary">
+									Dropped. Alfy won't bring it up again.
+								</p>
+							)}
 						</motion.div>
 					)}
 
@@ -105,17 +123,31 @@ export default function AlfyConversation() {
 							<div className="flex gap-2">
 								<button
 									type="button"
-									className="min-h-11 cursor-pointer rounded-full bg-fern px-4 text-small font-medium text-on-fern transition-colors hover:bg-[#436B59] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern"
+									onClick={() => setHandover('yes')}
+									disabled={handover !== null}
+									className="min-h-11 cursor-pointer rounded-full bg-fern px-4 text-small font-medium text-on-fern transition-colors hover:bg-[#436B59] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern disabled:cursor-default disabled:opacity-60"
 								>
-									Yes, handle it
+									{handover === 'yes' ? 'Handled from now on' : 'Yes, handle it'}
 								</button>
 								<button
 									type="button"
-									className="min-h-11 cursor-pointer rounded-full px-4 text-small font-medium text-secondary transition-colors hover:bg-fern-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern"
+									onClick={() => setHandover('notyet')}
+									disabled={handover !== null}
+									className="min-h-11 cursor-pointer rounded-full px-4 text-small font-medium text-secondary transition-colors hover:bg-fern-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern disabled:cursor-default disabled:opacity-60"
 								>
 									Not yet
 								</button>
 							</div>
+							{handover === 'yes' && (
+								<p className="text-small font-medium text-fern">
+									Done. You can take this back any time — just say so.
+								</p>
+							)}
+							{handover === 'notyet' && (
+								<p className="text-small text-secondary">
+									No problem. Alfy will keep asking, every time.
+								</p>
+							)}
 						</motion.div>
 					)}
 				</AnimatePresence>

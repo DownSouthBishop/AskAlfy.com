@@ -1,6 +1,4 @@
 ---
-import { SMS_URI } from '../lib/config';
-
 const steps = [
 	{
 		n: '1',
@@ -9,82 +7,186 @@ const steps = [
 	},
 	{
 		n: '2',
-		title: 'Alfy finds what needs doing',
+		title: 'Alfy does the legwork',
 		body: 'It checks the details and gets everything ready — no back-and-forth required.',
 	},
 	{
 		n: '3',
-		title: 'You approve before it sends',
-		body: "Nothing goes out without a yes from you. That's the whole deal.",
+		title: 'You give the yes',
+		body: "Nothing goes out without it. That's the whole deal.",
 	},
 ];
 ---
 
-<section class="how-it-works mx-auto max-w-6xl px-6 py-14 lg:py-16">
-	<div class="max-w-lg space-y-3">
-		<h2 class="how-fade font-display text-h1 font-semibold text-balance">
-			Alfy asks first.
-		</h2>
-		<p class="how-fade text-body text-secondary">
-			Every task follows the same three steps, and the last one is always yours.
-		</p>
-	</div>
-
-	<div class="mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
-		{
-			steps.map((step) => (
-				<div class="how-fade space-y-3">
-					<span class="flex h-9 w-9 items-center justify-center rounded-full bg-fern-tint font-display text-h2 font-semibold text-fern">
-						{step.n}
-					</span>
-					<h3 class="font-display text-h2 font-medium">{step.title}</h3>
-					<p class="text-body text-secondary">{step.body}</p>
+<section class="how-it-works" id="how">
+	<div class="how-pin mx-auto flex max-w-6xl items-center px-6 py-16 lg:min-h-screen lg:py-0">
+		<div class="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-16">
+			<div class="space-y-10">
+				<div class="max-w-lg space-y-3">
+					<h2 class="font-display text-h1 font-semibold text-balance">Alfy asks first.</h2>
+					<p class="text-body text-secondary">
+						Every task follows the same three steps, and the last one is always yours.
+					</p>
 				</div>
-			))
-		}
-	</div>
+				<ol class="space-y-7">
+					{
+						steps.map((step, i) => (
+							<li class="how-step flex gap-4 transition-opacity duration-300" data-i={i}>
+								<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-fern-tint font-display text-h2 font-semibold text-fern">
+									{step.n}
+								</span>
+								<div class="space-y-1">
+									<h3 class="font-display text-h2 font-medium">{step.title}</h3>
+									<p class="max-w-md text-body text-secondary">{step.body}</p>
+								</div>
+							</li>
+						))
+					}
+				</ol>
+				<a
+					href="#faq"
+					class="inline-block cursor-pointer text-body font-medium text-fern underline decoration-fern/40 underline-offset-4 transition-colors hover:text-espresso focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern"
+				>
+					Questions? Answers below →
+				</a>
+			</div>
 
-	<div class="how-fade mt-12 border-t border-hairline pt-8">
-		<a
-			href={SMS_URI}
-			class="cursor-pointer text-body font-medium text-fern underline decoration-fern/40 underline-offset-4 transition-colors hover:text-espresso focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fern"
-		>
-			Text Alfy and see for yourself →
-		</a>
+			<div class="how-stage relative space-y-4 lg:h-[21rem] lg:space-y-0">
+				<div
+					class="how-card rounded-3xl border border-hairline bg-card p-5 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.18)] lg:absolute lg:inset-x-0 lg:top-1/2 lg:-translate-y-1/2"
+					data-i="0"
+				>
+					<div class="space-y-3">
+						<div class="flex justify-end">
+							<p class="max-w-[85%] rounded-2xl rounded-br-sm bg-espresso px-4 py-2 text-body text-linen">
+								Can you sort out Mom's birthday?
+							</p>
+						</div>
+						<div class="flex justify-start">
+							<p class="max-w-[90%] rounded-2xl rounded-bl-sm border border-hairline bg-linen px-4 py-2 text-body text-espresso">
+								On it. She turns 62 on Saturday — I'll find something she'd
+								actually like.
+								<br />
+								<span class="text-secondary">— A</span>
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div
+					class="how-card rounded-3xl border border-hairline bg-card p-5 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.18)] lg:absolute lg:inset-x-0 lg:top-1/2 lg:-translate-y-1/2"
+					data-i="1"
+				>
+					<div class="rounded-2xl border border-hairline bg-linen p-4 space-y-3">
+						<p class="text-body text-espresso">
+							Found a lily bouquet from the florist she used last year. $34,
+							arrives Friday. I drafted a card too — want to see it?
+						</p>
+						<div class="flex gap-2">
+							<span
+								class="flex min-h-11 flex-1 items-center justify-center rounded-full bg-marigold px-4 text-small font-medium text-on-marigold"
+							>
+								Send
+							</span>
+							<span
+								class="flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline px-4 text-small font-medium text-espresso"
+							>
+								Edit
+							</span>
+							<span
+								class="flex min-h-11 flex-1 items-center justify-center rounded-full px-4 text-small font-medium text-secondary"
+							>
+								Skip
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div
+					class="how-card rounded-3xl border border-fern/20 bg-card p-5 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.18)] lg:absolute lg:inset-x-0 lg:top-1/2 lg:-translate-y-1/2"
+					data-i="2"
+				>
+					<div class="rounded-2xl bg-fern-tint p-4 space-y-3">
+						<p class="text-body text-espresso">
+							Sent. Flowers arrive Friday by noon, card signed the way you
+							always sign them. I'll confirm delivery.
+							<br />
+							<span class="text-secondary">— A</span>
+						</p>
+						<p class="flex items-center gap-2 text-small font-medium text-fern">
+							<svg
+								class="h-4 w-4"
+								viewBox="0 0 16 16"
+								fill="none"
+								aria-hidden="true"
+							>
+								<path
+									d="M3 8.5 6.5 12 13 4.5"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								></path>
+							</svg>
+							You approved this at 9:14am
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </section>
 
 <script>
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { reveal } from '../lib/reveal';
 
 	gsap.registerPlugin(ScrollTrigger);
 
 	const mm = gsap.matchMedia();
 
-	mm.add(
-		{
-			motionOK: '(prefers-reduced-motion: no-preference)',
-		},
-		(context) => {
-			const { motionOK } = context.conditions as { motionOK: boolean };
+	// Desktop + motion OK: pin the section and step through the three cards.
+	mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+		const cards = gsap.utils.toArray<HTMLElement>('.how-card');
+		const stepEls = gsap.utils.toArray<HTMLElement>('.how-step');
 
-			if (!motionOK) {
-				gsap.set('.how-fade', { opacity: 1, y: 0 });
-				return;
-			}
+		gsap.set(cards, { opacity: 0, y: 24 });
+		gsap.set(cards[0], { opacity: 1, y: 0 });
 
-			gsap.from('.how-fade', {
-				opacity: 0,
-				y: 16,
-				stagger: 0.08,
-				duration: 0.5,
-				ease: 'power2.out',
-				scrollTrigger: {
-					trigger: '.how-it-works',
-					start: 'top 75%',
-				},
+		const setActive = (i: number) => {
+			stepEls.forEach((el, j) => {
+				el.style.opacity = j === i ? '1' : '0.35';
 			});
-		}
-	);
+		};
+		setActive(0);
+
+		const tl = gsap.timeline({
+			scrollTrigger: {
+				trigger: '.how-it-works',
+				start: 'top top',
+				end: '+=1600',
+				pin: '.how-pin',
+				scrub: 0.5,
+				snap: 1 / 2,
+				onUpdate: (self) => {
+					setActive(Math.round(self.progress * 2));
+				},
+			},
+		});
+
+		tl.to(cards[0], { opacity: 0, y: -24, duration: 0.6 })
+			.to(cards[1], { opacity: 1, y: 0, duration: 0.6 }, '>')
+			.to(cards[1], { opacity: 0, y: -24, duration: 0.6 }, '+=0.6')
+			.to(cards[2], { opacity: 1, y: 0, duration: 0.6 }, '>');
+
+		return () => {
+			stepEls.forEach((el) => (el.style.opacity = '1'));
+		};
+	});
+
+	// Mobile: simple one-shot fade for the whole section.
+	mm.add('(max-width: 1023px)', () => {
+		reveal('.how-it-works .how-step, .how-it-works .how-card', '.how-it-works');
+	});
 </script>

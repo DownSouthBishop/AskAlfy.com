@@ -1,0 +1,14 @@
+[    7294ms] [LOG] 🏠 Hero: Active campaign check {campaign: null} @ https://daylightcomputer.com/_next/static/chunks/app/(home)/page-8b740ac8b83cd657.js:0
+[    7306ms] [LOG] 
+
+   ██╗
+   ██║
+   ██████╗
+   ██╔══██╗  ██╗
+   ██████╔╝  ██╝
+   ╚═════╝   
+                                                                                
+   From the basement. https://basement.studio
+ @ https://daylightcomputer.com/_next/static/chunks/app/layout-764e9b4c694b17f5.js:0
+[  169330ms] [WARNING] ReactPlayer: the attempt to load https://stream.mux.com/S2LAg2p88udd00KzrricsQhFFJZrSfL00zkqxV300Kwi5k?max_resolution=720p&rendition_order=desc is being deferred until the player has loaded @ https://daylightcomputer.com/_next/static/chunks/3506.44186d452fa8eb81.js:0
+[  188962ms] [WARNING] ReactPlayer: the attempt to load https://stream.mux.com/S2LAg2p88udd00KzrricsQhFFJZrSfL00zkqxV300Kwi5k?max_resolution=720p&rendition_order=desc is being deferred until the player has loaded @ https://daylightcomputer.com/_next/static/chunks/3506.44186d452fa8eb81.js:0

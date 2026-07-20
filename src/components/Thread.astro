@@ -1,0 +1,110 @@
+<!-- The thread: a ledger rule running down the left margin, filling in as you
+     read. Nodes light as each section is reached — fern at the trust moment.
+     Desktop-only (needs the gutter); decorative, hidden from AT. -->
+<div id="thread" aria-hidden="true" class="pointer-events-none absolute z-10 hidden xl:block">
+	<div class="thread-base"></div>
+	<div id="thread-fill" class="thread-fill"></div>
+</div>
+
+<style>
+	#thread {
+		left: calc(50vw - 37rem);
+		width: 2px;
+	}
+	.thread-base,
+	.thread-fill {
+		position: absolute;
+		inset: 0;
+		border-left: 2px dashed #e7dfd0;
+	}
+	.thread-fill {
+		border-left-color: #e08a2e;
+		height: 0;
+		inset: 0 auto auto 0;
+	}
+	:global(.thread-node) {
+		position: absolute;
+		left: -5px;
+		width: 12px;
+		height: 12px;
+		border-radius: 9999px;
+		background: #fffdf8;
+		border: 2px solid #e7dfd0;
+		transition:
+			background-color 0.3s,
+			border-color 0.3s,
+			transform 0.3s;
+	}
+	:global(.thread-node.lit) {
+		background: #e08a2e;
+		border-color: #e08a2e;
+		transform: scale(1.25);
+	}
+	:global(.thread-node.fern.lit) {
+		background: #4e7d68;
+		border-color: #4e7d68;
+	}
+</style>
+
+<script>
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+	gsap.registerPlugin(ScrollTrigger);
+
+	const thread = document.getElementById('thread');
+	const fill = document.getElementById('thread-fill');
+	const stops: [string, string][] = [
+		['#how', ''],
+		['#handles', ''],
+		['#trust', 'fern'],
+		['#faq', ''],
+	];
+
+	function layout() {
+		if (!thread) return;
+		const first = document.querySelector<HTMLElement>('#how');
+		const wrapper = thread.parentElement;
+		if (!first || !wrapper) return;
+		// The line begins at the first node and descends — nothing above it.
+		const NODE_OFFSET = 130;
+		const top = first.offsetTop + NODE_OFFSET;
+		thread.style.top = `${top}px`;
+		thread.style.height = `${wrapper.scrollHeight - top}px`;
+		thread.querySelectorAll('.thread-node').forEach((n) => n.remove());
+		for (const [sel, extra] of stops) {
+			const el = document.querySelector<HTMLElement>(sel);
+			if (!el) continue;
+			const node = document.createElement('div');
+			node.className = `thread-node ${extra}`;
+			node.style.top = `${el.offsetTop - top + NODE_OFFSET}px`;
+			thread.appendChild(node);
+		}
+	}
+
+	const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	layout();
+	ScrollTrigger.addEventListener('refresh', layout);
+
+	if (reduced) {
+		// Static: full line, all nodes lit — no motion.
+		if (fill) fill.style.height = '100%';
+		thread?.querySelectorAll('.thread-node').forEach((n) => n.classList.add('lit'));
+	} else {
+		ScrollTrigger.create({
+			trigger: thread,
+			start: 'top 70%',
+			end: 'bottom 70%',
+			scrub: 0.3,
+			onUpdate(self) {
+				if (!thread || !fill) return;
+				fill.style.height = `${self.progress * 100}%`;
+				const filled = self.progress * thread.offsetHeight;
+				thread.querySelectorAll<HTMLElement>('.thread-node').forEach((n) => {
+					n.classList.toggle('lit', parseFloat(n.style.top) <= filled);
+				});
+			},
+		});
+	}
+</script>

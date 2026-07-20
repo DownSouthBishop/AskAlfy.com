@@ -21,6 +21,9 @@ const { title = 'Alfy — just text an assistant' } = Astro.props;
 		<script>
 			import Lenis from 'lenis';
 			import { gsap } from 'gsap';
+			import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+			gsap.registerPlugin(ScrollTrigger);
 
 			const prefersReducedMotion = window.matchMedia(
 				'(prefers-reduced-motion: reduce)'
@@ -28,6 +31,9 @@ const { title = 'Alfy — just text an assistant' } = Astro.props;
 
 			if (!prefersReducedMotion) {
 				const lenis = new Lenis();
+				// Lenis virtualizes scroll, so ScrollTrigger's native scroll-position
+				// math desyncs unless every Lenis tick also updates ScrollTrigger.
+				lenis.on('scroll', ScrollTrigger.update);
 				gsap.ticker.add((time) => {
 					lenis.raf(time * 1000);
 				});

@@ -1,0 +1,38 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - paragraph [ref=e3]: Alfy
+  - generic [ref=e6]:
+    - heading "Everyone gets an assistant." [level=1] [ref=e7]:
+      - generic [ref=e8]: Everyone
+      - generic [ref=e9]: gets
+      - generic [ref=e10]: an
+      - generic [ref=e11]: assistant.
+    - paragraph [ref=e12]: Alfy handles the things you'd forget — and asks before anything sends. Works on any phone that can text.
+    - link "Text Alfy" [ref=e14] [cursor=pointer]:
+      - /url: sms:+10000000000
+    - paragraph [ref=e15]: No app to install. Nothing sends without your OK.
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - heading "Alfy asks first." [level=2] [ref=e21]
+      - paragraph [ref=e22]: Every task follows the same three steps, and the last one is always yours.
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: "1"
+        - heading "Text it like a person" [level=3] [ref=e26]
+        - paragraph [ref=e27]: No app, no login. Just say what you need, the way you'd text a friend.
+      - generic [ref=e28]:
+        - generic [ref=e29]: "2"
+        - heading "Alfy finds what needs doing" [level=3] [ref=e30]
+        - paragraph [ref=e31]: It checks the details and gets everything ready — no back-and-forth required.
+      - generic [ref=e32]:
+        - generic [ref=e33]: "3"
+        - heading "You approve before it sends" [level=3] [ref=e34]
+        - paragraph [ref=e35]: Nothing goes out without a yes from you. That's the whole deal.
+    - link "Text Alfy and see for yourself →" [ref=e37] [cursor=pointer]:
+      - /url: sms:+10000000000
+  - contentinfo [ref=e38]:
+    - generic [ref=e39]:
+      - paragraph [ref=e40]: Ready when you are.
+      - link "Text Alfy" [ref=e41] [cursor=pointer]:
+        - /url: sms:+10000000000
+      - paragraph [ref=e42]: © 2026 Alfy

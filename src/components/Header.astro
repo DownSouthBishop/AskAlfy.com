@@ -1,3 +1,72 @@
-<header class="mx-auto max-w-6xl px-6 py-6">
-	<p class="font-display text-h2 font-semibold">Alfy</p>
+---
+import { SMS_URI } from '../lib/config';
+---
+
+<header id="site-header" class="fixed inset-x-0 top-0 z-50">
+	<div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+		<a href="/" class="font-display text-h2 font-semibold text-espresso">AskAlfy</a>
+		<nav class="flex items-center gap-5" aria-label="Site">
+			<a
+				href="/app"
+				class="text-small font-medium text-secondary transition-colors hover:text-espresso focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+			>
+				Peek inside
+			</a>
+			<a
+				href={SMS_URI}
+				id="header-cta"
+			class="rounded-full bg-marigold px-5 py-2 text-small font-medium text-on-marigold hover:bg-[#C97923] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso"
+		>
+				Text Alfy
+			</a>
+		</nav>
+	</div>
 </header>
+<!-- spacer so content doesn't sit under the fixed header -->
+<div class="h-16" aria-hidden="true"></div>
+
+<style>
+	#site-header {
+		background-color: transparent;
+		border-bottom: 1px solid transparent;
+		transition:
+			background-color 0.3s,
+			border-color 0.3s;
+	}
+	#site-header.scrolled {
+		/* frosted paper — the one glass moment on the site */
+		background-color: rgba(250, 245, 236, 0.7); /* linen */
+		-webkit-backdrop-filter: blur(12px) saturate(1.15);
+		backdrop-filter: blur(12px) saturate(1.15);
+		border-bottom-color: #e7dfd0; /* hairline */
+	}
+	#header-cta {
+		opacity: 0;
+		transform: translateY(-4px);
+		pointer-events: none;
+		transition:
+			opacity 0.3s,
+			transform 0.3s,
+			background-color 0.15s;
+	}
+	#site-header.scrolled #header-cta {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		#site-header,
+		#header-cta {
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	const header = document.getElementById('site-header');
+	const onScroll = () => {
+		header?.classList.toggle('scrolled', window.scrollY > 400);
+	};
+	onScroll();
+	window.addEventListener('scroll', onScroll, { passive: true });
+</script>
