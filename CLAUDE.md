@@ -1,3 +1,57 @@
+# 🚀 Finishing Alfy — START HERE
+
+> **You're the finishing engineer. The whole app is built. Your only job is to create
+> four accounts, paste some keys, and deploy. No new code required.** Follow this in order.
+> Deeper detail + the short "verify these 4 API calls" list is in `docs/alfy-handoff.md`.
+
+### What's already done (don't rebuild it)
+Marketing site, the 3-tab dashboard (Today / Handled / Alfy knows), phone-OTP login, the
+`/a` magic-link handler, the DB schema (`supabase/migrations/0001_alfy_core.sql`), and five
+edge functions (`supabase/functions/alfy-*`). It runs on demo data right now with zero setup.
+
+### Step 1 — Get it running locally (2 min)
+```bash
+npm install
+npm run dev          # open the printed URL → /app shows the dashboard on demo data
+```
+
+### Step 2 — Make the 4 accounts (the only thing code can't do)
+1. **Supabase** — new project (a *fresh* one, not Prymal's). Copy its URL + anon key.
+2. **Twilio** — buy a phone number + register A2P 10DLC.
+3. **Composio** — one account; create a **custom auth config** for Gmail and for Calendar.
+4. **Anthropic** — one API key.
+
+### Step 3 — Wire it up
+```bash
+cp .env.local.example .env.local        # fill PUBLIC_SUPABASE_URL + PUBLIC_SUPABASE_ANON_KEY
+supabase link --project-ref <your-ref>
+supabase db push                        # creates every table + security rules
+# set the backend secrets (names listed in .env.local.example):
+supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
+  ANTHROPIC_API_KEY=... COMPOSIO_API_KEY=... COMPOSIO_AUTHCFG_GMAIL=... \
+  COMPOSIO_AUTHCFG_CALENDAR=... TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=...
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect
+```
+Then:
+- **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).
+- **Twilio** → point the number's inbound webhook at the `alfy-sms-inbound` function URL.
+- Set the real number in `src/lib/config.ts` (`ALFY_PHONE`).
+- Deploy the site (Vercel/Netlify) with the `PUBLIC_` env vars.
+
+### Step 4 — Verify (see `docs/alfy-handoff.md` for the exact 4 calls to confirm)
+Composio tool slugs, the Composio connect body, Twilio signature check, Twilio send.
+
+### Step 5 — Smoke test
+Text the number → get a reply + an `Approve:` link → tap it → tap Approve → the action fires
+→ a confirmation text arrives. That's the whole loop.
+
+### The one rule you cannot break
+**Everything below this line is the design constitution. Match it exactly** — the three
+sections, the palette, Fraunces/Inter, the voice, and fern = the approval/trust colour.
+Any screen you touch must still look like the rest. Do not add a fourth dashboard tab.
+
+---
+
 # Alfy Design Constitution
 Brand: Alfy (askalfy.com). A warm, comfortably competent AI assistant anyone can
 text. Tagline: "Just text Alfy." Trust narrative: "Alfy asks first."
