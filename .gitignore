@@ -27,3 +27,7 @@ pnpm-debug.log*
 
 # local screenshot artifacts
 .claude/screenshots/
+
+# one-off screenshots (design references live in references/, which IS tracked)
+/ref-*.png
+/alfy-*-full.png

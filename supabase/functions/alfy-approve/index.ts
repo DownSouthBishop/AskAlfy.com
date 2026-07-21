@@ -1,73 +1,85 @@
 // alfy-approve — executes an approved action. Called after the person taps Approve.
-// This is the ONLY place an outbound action actually fires, and only for status='approved'.
-// Reads action_payload the agent stashed, replays it through Composio, texts a confirmation.
-//
-// VERIFY before prod: Composio execute slugs/shape, Twilio send creds, and how this is
-// triggered (dashboard fetch with the user's JWT, or a DB webhook on status change).
+// This is the ONLY place an outbound action actually fires, and only for status='approved'
+// on a row the CALLER owns. Reads action_payload the agent stashed, replays it through
+// Composio, texts a confirmation.
 
 import { createClient } from 'npm:@supabase/supabase-js';
+import { composioExecute, TOOL_SLUG } from '../_shared/composio.ts';
+import { requireEnv } from '../_shared/env.ts';
+import { CORS, JSON_CORS } from '../_shared/cors.ts';
+import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const COMPOSIO_API_KEY = Deno.env.get('COMPOSIO_API_KEY')!;
-const COMPOSIO_BASE = 'https://backend.composio.dev';
-const TWILIO_SID = Deno.env.get('TWILIO_ACCOUNT_SID')!;
-const TWILIO_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN')!;
-const TWILIO_FROM = Deno.env.get('TWILIO_PHONE_NUMBER')!;
-
-// action_type → Composio tool slug. VERIFY slugs against the live toolkit list.
-const SLUG: Record<string, string> = {
-	'gmail.send': 'GMAIL_SEND_EMAIL',
-	'gcal.create_event': 'GOOGLECALENDAR_CREATE_EVENT',
-};
-
-async function composio(userId: string, toolSlug: string, args: Record<string, unknown>) {
-	const res = await fetch(`${COMPOSIO_BASE}/api/v3/tools/execute/${toolSlug}`, {
-		method: 'POST',
-		headers: { 'x-api-key': COMPOSIO_API_KEY, 'Content-Type': 'application/json' },
-		body: JSON.stringify({ user_id: userId, arguments: args }),
-	});
-	return await res.json();
-}
-
-async function sendSms(supa: ReturnType<typeof createClient>, userId: string, to: string, body: string) {
-	await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
-		method: 'POST',
-		headers: { Authorization: 'Basic ' + btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`), 'Content-Type': 'application/x-www-form-urlencoded' },
-		body: new URLSearchParams({ To: to, From: TWILIO_FROM, Body: body }),
-	});
-	await supa.from('messages').insert({ user_id: userId, from_phone: TWILIO_FROM, direction: 'outbound', body });
-}
+const SUPABASE_URL = requireEnv('SUPABASE_URL');
+const SUPABASE_ANON_KEY = requireEnv('SUPABASE_ANON_KEY');
+const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
 Deno.serve(async (req) => {
-	const { approval_id } = await req.json();
+	if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+	// Identify the caller. Without this, the default JWT gate accepts the anon key —
+	// which every browser has — and anyone could fire anyone's approved action.
+	const auth = req.headers.get('Authorization');
+	if (!auth) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: JSON_CORS });
+
+	const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+	const { data: { user } } = await anon.auth.getUser(auth.replace('Bearer ', ''));
+	if (!user) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: JSON_CORS });
+
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+	const { data: acct } = await supa.from('users').select('id').eq('auth_user_id', user.id).single();
+	if (!acct) return new Response(JSON.stringify({ error: 'no account' }), { status: 404, headers: JSON_CORS });
 
-	const { data: row } = await supa
+	const { approval_id } = await req.json().catch(() => ({ approval_id: null }));
+	if (!approval_id) return new Response(JSON.stringify({ error: 'missing approval_id' }), { status: 400, headers: JSON_CORS });
+
+	// Claim the row: flip approved → executing in one conditional update, scoped to the
+	// caller. Two taps (or a double-invoke) race here instead of both sending the email —
+	// the loser gets zero rows back.
+	const { data: claimed } = await supa
 		.from('approval_queue')
-		.select('id, user_id, action_type, action_payload, status, summary')
+		.update({ status: 'executing' })
 		.eq('id', approval_id)
-		.single();
+		.eq('user_id', acct.id)
+		.eq('status', 'approved')
+		.select('id, user_id, action_type, action_payload, summary')
+		.maybeSingle();
 
-	if (!row || row.status !== 'approved') return new Response(JSON.stringify({ error: 'not approvable' }), { status: 409 });
+	if (!claimed) return new Response(JSON.stringify({ error: 'not approvable' }), { status: 409, headers: JSON_CORS });
 
-	const slug = SLUG[row.action_type];
-	if (!slug) return new Response(JSON.stringify({ error: `no tool for ${row.action_type}` }), { status: 400 });
-
-	// The person's phone for the confirmation text.
-	const { data: phone } = await supa.from('user_phones').select('phone_e164').eq('user_id', row.user_id).eq('is_primary', true).single();
+	const slug = TOOL_SLUG[claimed.action_type as string];
+	if (!slug) {
+		await supa.from('approval_queue').update({ status: 'failed' }).eq('id', claimed.id);
+		return new Response(JSON.stringify({ error: `no tool for ${claimed.action_type}` }), { status: 400, headers: JSON_CORS });
+	}
 
 	try {
-		await composio(row.user_id, slug, row.action_payload as Record<string, unknown>);
-		await supa.from('approval_queue').update({
-			status: 'executed',
-			executed_at: new Date().toISOString(),
-			undo_until: new Date(Date.now() + 10 * 60_000).toISOString(),
-		}).eq('id', row.id);
-		if (phone) await sendSms(supa, row.user_id, phone.phone_e164, `Done — ${row.summary}. — A`);
-		return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+		await composioExecute(claimed.user_id as string, slug, claimed.action_payload as Record<string, unknown>);
 	} catch (err) {
-		await supa.from('approval_queue').update({ status: 'failed' }).eq('id', row.id);
-		return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 });
+		await supa.from('approval_queue').update({ status: 'failed' }).eq('id', claimed.id);
+		return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: JSON_CORS });
 	}
+
+	await supa.from('approval_queue').update({
+		status: 'executed',
+		executed_at: new Date().toISOString(),
+		undo_until: new Date(Date.now() + 10 * 60_000).toISOString(),
+	}).eq('id', claimed.id);
+
+	// Confirmation text to the person's primary number.
+	const { data: phone } = await supa
+		.from('user_phones')
+		.select('phone_e164')
+		.eq('user_id', claimed.user_id)
+		.eq('is_primary', true)
+		.maybeSingle();
+
+	if (phone) {
+		const body = `Done — ${claimed.summary}. — A`;
+		const segments = await sendSms(phone.phone_e164 as string, body);
+		await supa.from('messages').insert({
+			user_id: claimed.user_id, from_phone: TWILIO_FROM, direction: 'outbound', body, segments: segments || 1,
+		});
+	}
+
+	return new Response(JSON.stringify({ ok: true }), { headers: JSON_CORS });
 });

@@ -49,7 +49,11 @@ export async function loadHandled(range: Range): Promise<HandledItem[]> {
 	let q = supabase
 		.from('approval_queue')
 		.select('id, kind, summary, standing_permission_id, decided_at, undo_until')
-		.in('status', ['approved', 'executed'])
+		// 'executing' is the few-seconds claim state alfy-approve holds a row in — without
+		// it here, an item vanishes from both tabs between the tap and the confirmation.
+		// 'failed' is deliberately excluded: this list renders every row as something Alfy
+		// did, so a failure needs its own treatment rather than a silent lie.
+		.in('status', ['approved', 'executing', 'executed'])
 		.order('decided_at', { ascending: false });
 
 	const now = Date.now();

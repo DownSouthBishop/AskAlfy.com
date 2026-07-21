@@ -1,19 +1,20 @@
 // alfy-sms-inbound — Twilio Messaging webhook. The front door.
-// Fast + queue-shaped: verify, dedupe, route, run the agent, text back. At scale, swap the
-// inline runAgent for an enqueue + worker (see docs/alfy-handoff.md) — the seam is right here.
+// Verify, dedupe, route, run the agent, text back. At scale, swap the inline runAgent for
+// an enqueue + worker (see docs/alfy-handoff.md) — the seam is right here.
 //
-// VERIFY before prod: Twilio signature check, Twilio send creds, and cross-function import of
-// runAgent (Supabase bundles per folder — likely move runAgent to functions/_shared/).
+// Deploy with --no-verify-jwt: the caller is Twilio, authenticated by its signature, not a
+// Supabase session.
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { runAgent } from '../alfy-agent/index.ts';
+import { runAgent, type Supa } from '../_shared/agent.ts';
+import { optionalEnv, requireEnv } from '../_shared/env.ts';
+import { sendSms, TWILIO_FROM, validateTwilioSignature } from '../_shared/twilio.ts';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const TWILIO_SID = Deno.env.get('TWILIO_ACCOUNT_SID')!;
-const TWILIO_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN')!;
-const TWILIO_FROM = Deno.env.get('TWILIO_PHONE_NUMBER')!;
-const APP_URL = Deno.env.get('PUBLIC_APP_URL') ?? 'https://askalfy.com';
+const SUPABASE_URL = requireEnv('SUPABASE_URL');
+const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+const APP_URL = optionalEnv('PUBLIC_APP_URL', 'https://askalfy.com');
+
+const PG_UNIQUE_VIOLATION = '23505';
 
 function randomToken() {
 	return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
@@ -25,27 +26,33 @@ function syntheticEmail(phoneE164: string) {
 	return `${phoneE164.replace(/\D/g, '')}@sms.askalfy.com`;
 }
 
-async function sendSms(to: string, body: string) {
-	// VERIFY: Twilio Messages API. Basic auth = SID:AuthToken.
-	await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
-		method: 'POST',
-		headers: {
-			Authorization: 'Basic ' + btoa(`${TWILIO_SID}:${TWILIO_TOKEN}`),
-			'Content-Type': 'application/x-www-form-urlencoded',
-		},
-		body: new URLSearchParams({ To: to, From: TWILIO_FROM, Body: body }),
+// Send + log together so messages.segments stays a real cost number.
+async function reply(supa: Supa, userId: string, to: string, body: string) {
+	const segments = await sendSms(to, body);
+	await supa.from('messages').insert({
+		user_id: userId,
+		from_phone: TWILIO_FROM,
+		direction: 'outbound',
+		body,
+		segments: segments || 1,
 	});
 }
 
 Deno.serve(async (req) => {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 	const form = await req.formData();
-	const from = String(form.get('From') ?? '');
-	const body = String(form.get('Body') ?? '').trim();
-	const sid = String(form.get('MessageSid') ?? '');
+	const params: Record<string, string> = {};
+	for (const [key, value] of form.entries()) params[key] = String(value);
 
-	// TODO(VERIFY): validate X-Twilio-Signature (HMAC-SHA1 over full URL + sorted params)
-	// before trusting anything above. Reject if it fails.
+	// Nothing above this line is trusted. Anyone who knows a number could otherwise drive
+	// the agent on that person's account.
+	if (!(await validateTwilioSignature(req, params))) {
+		return new Response('invalid signature', { status: 403 });
+	}
+
+	const from = params['From'] ?? '';
+	const body = (params['Body'] ?? '').trim();
+	const sid = params['MessageSid'] ?? '';
 
 	// Carrier-mandated keywords — handle before anything else.
 	const kw = body.toUpperCase();
@@ -53,10 +60,32 @@ Deno.serve(async (req) => {
 		await supa.from('user_phones').update({ consent: 'opted_out' }).eq('phone_e164', from);
 		return new Response(null, { status: 204 });
 	}
-	if (kw === 'HELP') { await sendSms(from, 'Alfy here. Text anything you want handled. Reply STOP to opt out. — A'); return new Response(null, { status: 204 }); }
+	if (kw === 'HELP') {
+		await sendSms(from, 'Alfy here. Text anything you want handled. Reply STOP to opt out. — A');
+		return new Response(null, { status: 204 });
+	}
+	// START/UNSTOP re-subscribes an opted-out line. Carrier-mandated alongside STOP, and
+	// without it the consent gate below would silently swallow every attempt to come back.
+	if (kw === 'START' || kw === 'UNSTOP') {
+		const { data: resumed } = await supa
+			.from('user_phones')
+			.update({ consent: 'opted_in', consent_at: new Date().toISOString() })
+			.eq('phone_e164', from)
+			.eq('consent', 'opted_out')
+			.select('id');
+		if (resumed?.length) {
+			await sendSms(from, "You're back. Text me anything you want handled. — A");
+			return new Response(null, { status: 204 });
+		}
+		// No opted-out row — fall through so an unknown number still gets onboarded below.
+	}
 
 	// Map number → account. Match the NUMBER, never the device.
-	const { data: phone } = await supa.from('user_phones').select('user_id, consent').eq('phone_e164', from).maybeSingle();
+	const { data: phone } = await supa
+		.from('user_phones')
+		.select('user_id, consent')
+		.eq('phone_e164', from)
+		.maybeSingle();
 
 	if (!phone) {
 		// Unknown number. "YES/START" = consent → create the account; else prompt.
@@ -70,7 +99,12 @@ Deno.serve(async (req) => {
 			});
 			if (created?.user) {
 				const { data: u } = await supa.from('users').insert({ auth_user_id: created.user.id }).select('id').single();
-				if (u) await supa.from('user_phones').insert({ user_id: u.id, phone_e164: from, is_primary: true, consent: 'opted_in', consent_at: now, verified_at: now });
+				if (u) {
+					await supa.from('user_phones').insert({
+						user_id: u.id, phone_e164: from, is_primary: true,
+						consent: 'opted_in', consent_at: now, verified_at: now,
+					});
+				}
 			}
 			await sendSms(from, "You're set up. Text me anything you want handled — I'll draft it and ask before anything sends. — A");
 			return new Response(null, { status: 204 });
@@ -79,29 +113,45 @@ Deno.serve(async (req) => {
 		return new Response(null, { status: 204 });
 	}
 
-	// Dedupe: unique twilio_sid means a retry just no-ops here.
-	const { error: dupe } = await supa.from('messages').insert({ user_id: phone.user_id, from_phone: from, direction: 'inbound', body, twilio_sid: sid });
-	if (dupe) return new Response(null, { status: 200 }); // already processed
+	// They said STOP. Staying silent is the whole point — do not reply, do not run anything.
+	if (phone.consent === 'opted_out') return new Response(null, { status: 204 });
 
-	// Run the agent (inline now; enqueue at scale).
-	const reply = await runAgent(phone.user_id, body);
+	// Dedupe on the twilio_sid unique index. Only a uniqueness collision means "already
+	// processed" — any other insert failure is a real error and must not silently drop
+	// the person's message.
+	const { error: logErr } = await supa.from('messages').insert({
+		user_id: phone.user_id, from_phone: from, direction: 'inbound', body, twilio_sid: sid,
+	});
+	if (logErr) {
+		if (logErr.code === PG_UNIQUE_VIOLATION) return new Response(null, { status: 200 });
+		console.error('inbound log failed', logErr);
+		return new Response('log failed', { status: 500 });
+	}
 
-	// If the turn queued anything, mint a one-time approval link and append it.
-	const { data: pending } = await supa
-		.from('approval_queue').select('id').eq('user_id', phone.user_id).eq('status', 'pending')
-		.order('created_at', { ascending: false }).limit(1);
+	// The message row is already committed, so a Twilio retry would dedupe to a no-op and
+	// the person would hear nothing at all. Answer here instead of throwing.
+	let turn;
+	try {
+		turn = await runAgent(phone.user_id as string, body);
+	} catch (err) {
+		console.error('agent failed', err);
+		await reply(supa, phone.user_id as string, from, "Something went wrong on my end. Try me again in a minute. — A");
+		return new Response(null, { status: 200 });
+	}
 
-	let text = reply;
-	if (pending && pending.length > 0) {
+	// Deep-link the approval at what THIS turn queued, not whatever happens to be pending.
+	let text = turn.reply;
+	if (turn.queuedId) {
 		const token = randomToken();
 		await supa.from('access_links').insert({
-			user_id: phone.user_id, approval_id: pending[0].id, token,
+			user_id: phone.user_id,
+			approval_id: turn.queuedId,
+			token,
 			expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
 		});
 		text += `\nApprove: ${APP_URL}/a?t=${token}`;
 	}
 
-	await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TWILIO_FROM, direction: 'outbound', body: text });
-	await sendSms(from, text);
+	await reply(supa, phone.user_id as string, from, text);
 	return new Response(null, { status: 200 });
 });
