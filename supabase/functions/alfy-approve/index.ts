@@ -5,7 +5,24 @@
 // queue_action the model invented without a matching executor fails gracefully.
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { calendarCreateEvent, getFreshToken, gmailSend } from '../_shared/google.ts';
+import {
+	calendarCreateEvent,
+	calendarDeleteEvent,
+	calendarScheduleMeet,
+	calendarUpdateEvent,
+	getFreshToken,
+	gmailApplyLabel,
+	gmailArchive,
+	gmailCreateDraft,
+	gmailCreateFilter,
+	gmailCreateLabel,
+	gmailMarkRead,
+	gmailMarkUnread,
+	gmailRemoveLabel,
+	gmailSend,
+	gmailSetAutoReply,
+	gmailTrash,
+} from '../_shared/google.ts';
 import { sendSms, TWILIO_FROM_NUMBER } from '../_shared/twilio.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -26,6 +43,10 @@ Deno.serve(async (req) => {
 	// The person's phone for the confirmation text.
 	const { data: phone } = await supa.from('user_phones').select('phone_e164').eq('user_id', row.user_id).eq('is_primary', true).single();
 
+	// Overridden for actions where "Done" would overstate what happened (e.g. schedule_send,
+	// which Gmail can't actually schedule — it becomes a draft, not a sent message).
+	let confirmationText: string | null = null;
+
 	try {
 		switch (row.action_type) {
 			case 'send_email': {
@@ -39,6 +60,90 @@ Deno.serve(async (req) => {
 				const token = await getFreshToken(supa, row.user_id, 'calendar');
 				if (!token) throw new Error('Calendar is not connected.');
 				await calendarCreateEvent(token, row.action_payload as Parameters<typeof calendarCreateEvent>[1]);
+				break;
+			}
+			case 'create_label': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailCreateLabel(token, row.action_payload as { name: string });
+				break;
+			}
+			case 'apply_label': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				const payload = row.action_payload as { threadIds: string[]; labelName: string };
+				await gmailApplyLabel(token, payload.threadIds, payload.labelName);
+				break;
+			}
+			case 'remove_label': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				const payload = row.action_payload as { threadIds: string[]; labelName: string };
+				await gmailRemoveLabel(token, payload.threadIds, payload.labelName);
+				break;
+			}
+			case 'archive_email': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailArchive(token, (row.action_payload as { threadIds: string[] }).threadIds);
+				break;
+			}
+			case 'mark_as_read': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailMarkRead(token, (row.action_payload as { threadIds: string[] }).threadIds);
+				break;
+			}
+			case 'mark_as_unread': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailMarkUnread(token, (row.action_payload as { threadIds: string[] }).threadIds);
+				break;
+			}
+			case 'delete_email': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailTrash(token, (row.action_payload as { threadIds: string[] }).threadIds);
+				break;
+			}
+			case 'create_filter': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				await gmailCreateFilter(token, row.action_payload as Parameters<typeof gmailCreateFilter>[1]);
+				break;
+			}
+			case 'set_auto_reply': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				const payload = row.action_payload as { subject?: string; startTime?: string; endTime?: string; restrictToContacts?: boolean; restrictToDomain?: boolean };
+				await gmailSetAutoReply(token, { ...payload, message: row.draft_content ?? '' });
+				break;
+			}
+			case 'schedule_send': {
+				const token = await getFreshToken(supa, row.user_id, 'gmail');
+				if (!token) throw new Error('Gmail is not connected.');
+				const payload = row.action_payload as { to: string; cc?: string | null; bcc?: string | null; subject: string; sendAt: string };
+				await gmailCreateDraft(token, { to: payload.to, cc: payload.cc, bcc: payload.bcc, subject: payload.subject, body: row.draft_content ?? '' });
+				confirmationText = `Saved as a draft — Gmail doesn't support scheduled send yet, so finish it there when you're ready. — A`;
+				break;
+			}
+			case 'update_event': {
+				const token = await getFreshToken(supa, row.user_id, 'calendar');
+				if (!token) throw new Error('Calendar is not connected.');
+				const payload = row.action_payload as { eventId: string };
+				await calendarUpdateEvent(token, payload.eventId, row.action_payload as Parameters<typeof calendarUpdateEvent>[2]);
+				break;
+			}
+			case 'delete_event': {
+				const token = await getFreshToken(supa, row.user_id, 'calendar');
+				if (!token) throw new Error('Calendar is not connected.');
+				await calendarDeleteEvent(token, (row.action_payload as { eventId: string }).eventId);
+				break;
+			}
+			case 'schedule_meet': {
+				const token = await getFreshToken(supa, row.user_id, 'calendar');
+				if (!token) throw new Error('Calendar is not connected.');
+				await calendarScheduleMeet(token, row.action_payload as Parameters<typeof calendarScheduleMeet>[1]);
 				break;
 			}
 			default: {
@@ -56,7 +161,7 @@ Deno.serve(async (req) => {
 		}).eq('id', row.id);
 
 		if (phone) {
-			const confirmation = `Done — ${row.summary}. — A`;
+			const confirmation = confirmationText ?? `Done — ${row.summary}. — A`;
 			await sendSms(phone.phone_e164, confirmation);
 			await supa.from('messages').insert({ user_id: row.user_id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: confirmation });
 		}

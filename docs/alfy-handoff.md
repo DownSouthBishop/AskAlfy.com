@@ -93,9 +93,16 @@ actions specifically, connect Google first from Settings → Connections.
 Composio's connect/tool-execute calls are no longer part of this path — see the Phase 1
 update at the top of this doc.)
 
-**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):** rest of Gmail/
-Calendar CRUD, Tasks/Drive/Docs/Sheets, the "Alfy knows" tab wired to real `people` data,
-standing-instruction tools + automation runner, Stripe billing/plan tiers.
+**Phase 2 update:** the rest of Gmail (labels, archive/read-state, filters, vacation
+auto-reply, schedule-send-as-draft) and Calendar (update/delete/`schedule_meet`,
+`get_availability`) are now wired end to end, each as its own agent tool queued through
+`approval_queue` and executed by `alfy-approve`. `remember_contact`/`recall_contacts` read
+and write the extended `people` table directly (not queued — it's memory, not an outbound
+action). The "Alfy knows" tab now reads real `people`/`standing_permissions` data instead
+of hardcoded demo constants, and its Trust "revoke" button actually revokes.
+
+**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):** Tasks/Drive/
+Docs/Sheets, standing-instruction tools + automation runner, Stripe billing/plan tiers.
 
 ---
 

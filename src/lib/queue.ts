@@ -101,6 +101,55 @@ export function connectProvider(provider: string): void {
 	window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
+export interface PersonItem {
+	id: string | number;
+	name: string;
+	note: string;
+}
+
+export interface TrustItem {
+	id: string | number;
+	line: string;
+	since: string;
+}
+
+export const DEMO_PEOPLE: PersonItem[] = [
+	{ id: 1, name: 'Sam', note: 'Your brother. Prefers texts. Owes you $40.' },
+	{ id: 2, name: 'Dana', note: 'Coworker. Prefers email, mornings only.' },
+	{ id: 3, name: 'Mom', note: 'Birthday June 14. Likes lilies, not roses.' },
+];
+
+export const DEMO_TRUST: TrustItem[] = [
+	{ id: 1, line: 'Sends calendar replies without asking', since: 'you granted this Jan 12' },
+	{ id: 2, line: 'Pays the wifi bill each month', since: 'you granted this Feb 3' },
+];
+
+export async function loadPeople(): Promise<PersonItem[]> {
+	if (!supabase) return DEMO_PEOPLE;
+	const { data } = await supabase.from('people').select('id, name, context_summary').order('updated_at', { ascending: false });
+	return (data ?? []).map((r) => ({ id: r.id, name: r.name, note: r.context_summary ?? '' }));
+}
+
+function grantedLabel(iso: string): string {
+	const d = new Date(iso);
+	return `you granted this ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+}
+
+export async function loadTrust(): Promise<TrustItem[]> {
+	if (!supabase) return DEMO_TRUST;
+	const { data } = await supabase
+		.from('standing_permissions')
+		.select('id, description, granted_at')
+		.is('revoked_at', null)
+		.order('granted_at', { ascending: false });
+	return (data ?? []).map((r) => ({ id: r.id, line: r.description, since: grantedLabel(r.granted_at) }));
+}
+
+export async function revokeTrust(id: string | number): Promise<void> {
+	if (!supabase) return;
+	await supabase.from('standing_permissions').update({ revoked_at: new Date().toISOString() }).eq('id', id);
+}
+
 export interface Breakdown {
 	total: number;
 	byKind: [string, number][];

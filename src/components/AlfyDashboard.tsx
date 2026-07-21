@@ -2,14 +2,21 @@ import { useEffect, useState } from 'react';
 import {
 	DEMO_QUEUE,
 	DEMO_HANDLED,
+	DEMO_PEOPLE,
+	DEMO_TRUST,
 	loadToday,
 	loadHandled,
+	loadPeople,
+	loadTrust,
+	revokeTrust,
 	approveItem,
 	skipItem,
 	connectProvider,
 	breakdown,
 	type QueueItem,
 	type HandledItem,
+	type PersonItem,
+	type TrustItem,
 	type Range,
 } from '../lib/queue';
 
@@ -20,17 +27,6 @@ type Tab = 'today' | 'handled' | 'knows';
 const WATCHING = [
 	'Wifi bill is due Friday — reminder set for Thursday morning',
 	'Airline refund from March — checking daily, day 6',
-];
-
-const PEOPLE = [
-	{ name: 'Sam', note: 'Your brother. Prefers texts. Owes you $40.' },
-	{ name: 'Dana', note: 'Coworker. Prefers email, mornings only.' },
-	{ name: 'Mom', note: 'Birthday June 14. Likes lilies, not roses.' },
-];
-
-const TRUST = [
-	{ line: 'Sends calendar replies without asking', since: 'you granted this Jan 12' },
-	{ line: 'Pays the wifi bill each month', since: 'you granted this Feb 3' },
 ];
 
 const reduceMotion =
@@ -135,6 +131,8 @@ export default function AlfyDashboard() {
 	const [queue, setQueue] = useState<QueueItem[]>(DEMO_QUEUE);
 	const [handled, setHandled] = useState<HandledItem[]>(DEMO_HANDLED);
 	const [range, setRange] = useState<Range>('week');
+	const [people, setPeople] = useState<PersonItem[]>(DEMO_PEOPLE);
+	const [trust, setTrust] = useState<TrustItem[]>(DEMO_TRUST);
 
 	// Hydrate from Supabase when it's configured; demo data shows until then.
 	useEffect(() => {
@@ -143,6 +141,15 @@ export default function AlfyDashboard() {
 	useEffect(() => {
 		loadHandled(range).then(setHandled);
 	}, [range]);
+	useEffect(() => {
+		loadPeople().then(setPeople);
+		loadTrust().then(setTrust);
+	}, []);
+
+	function handleRevokeTrust(id: string | number) {
+		setTrust((t) => t.filter((i) => i.id !== id));
+		void revokeTrust(id);
+	}
 
 	function handleApprove(item: QueueItem) {
 		setQueue((q) => q.filter((i) => i.id !== item.id));
@@ -354,8 +361,8 @@ export default function AlfyDashboard() {
 						<div className="rounded-3xl border border-hairline bg-card p-6 shadow-[0_8px_30px_-12px_rgba(46,42,36,0.12)]">
 							<p className="label-caps text-muted">People</p>
 							<ul className="mt-3 divide-y divide-hairline">
-								{PEOPLE.map((p) => (
-									<li key={p.name} className="flex items-baseline justify-between gap-4 py-3">
+								{people.map((p) => (
+									<li key={p.id} className="flex items-baseline justify-between gap-4 py-3">
 										<p className="text-body text-espresso">
 											<span className="font-medium">{p.name}</span>
 											<span className="text-secondary"> — {p.note}</span>
@@ -374,12 +381,13 @@ export default function AlfyDashboard() {
 						<div className="rounded-3xl border border-fern/20 bg-fern-tint/40 p-6">
 							<p className="label-caps text-fern">Trust</p>
 							<ul className="mt-3 space-y-3">
-								{TRUST.map((t) => (
-									<li key={t.line} className="text-body text-espresso">
+								{trust.map((t) => (
+									<li key={t.id} className="text-body text-espresso">
 										{t.line}
 										<span className="text-secondary"> — {t.since} · </span>
 										<button
 											type="button"
+											onClick={() => handleRevokeTrust(t.id)}
 											className="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso"
 										>
 											revoke

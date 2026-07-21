@@ -9,7 +9,7 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
-import { calendarListEvents, getFreshToken, gmailGetThread, gmailList, gmailListLabels } from './google.ts';
+import { calendarGetAvailability, calendarListEvents, getFreshToken, gmailGetThread, gmailList, gmailListLabels } from './google.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -96,6 +96,196 @@ const TOOLS: Anthropic.Tool[] = [
 		},
 	},
 	{
+		name: 'get_availability',
+		description: 'Check free/busy blocks on the calendar for a time range (read-only).',
+		input_schema: {
+			type: 'object',
+			properties: { timeMin: { type: 'string' }, timeMax: { type: 'string' } },
+			required: ['timeMin', 'timeMax'],
+		},
+	},
+	{
+		name: 'remember_contact',
+		description: "Save or update what Alfy knows about someone — not an outbound action, just memory. Rewrite context_summary to stay current rather than letting it grow forever; do this quietly, don't announce it.",
+		input_schema: {
+			type: 'object',
+			properties: {
+				name: { type: 'string' },
+				email: { type: 'string' },
+				company: { type: 'string' },
+				context_summary: { type: 'string', description: 'Plain-language notes, replaces what was there before' },
+				tags: { type: 'array', items: { type: 'string' } },
+				birthday: { type: 'string', description: 'Free text, e.g. "March 3" — year optional' },
+			},
+			required: ['name'],
+		},
+	},
+	{
+		name: 'recall_contacts',
+		description: 'Search what Alfy knows about people (read-only). Use query for free-text name/email/company/notes matching, tag to filter by tag, or stale_days to find people not heard from in a while.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				query: { type: 'string' },
+				tag: { type: 'string' },
+				stale_days: { type: 'number' },
+				limit: { type: 'number', default: 20 },
+			},
+		},
+	},
+	{
+		name: 'create_label',
+		description: 'Draft and queue a new Gmail label for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { name: { type: 'string' } },
+			required: ['name'],
+		},
+	},
+	{
+		name: 'apply_label',
+		description: 'Queue applying a label to one or more email threads for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } }, labelName: { type: 'string' } },
+			required: ['threadIds', 'labelName'],
+		},
+	},
+	{
+		name: 'remove_label',
+		description: 'Queue removing a label from one or more email threads for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } }, labelName: { type: 'string' } },
+			required: ['threadIds', 'labelName'],
+		},
+	},
+	{
+		name: 'archive_email',
+		description: 'Queue archiving one or more email threads for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } } },
+			required: ['threadIds'],
+		},
+	},
+	{
+		name: 'mark_as_read',
+		description: 'Queue marking one or more email threads as read for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } } },
+			required: ['threadIds'],
+		},
+	},
+	{
+		name: 'mark_as_unread',
+		description: 'Queue marking one or more email threads as unread for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } } },
+			required: ['threadIds'],
+		},
+	},
+	{
+		name: 'delete_email',
+		description: 'Queue moving one or more email threads to trash (reversible) for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { threadIds: { type: 'array', items: { type: 'string' } } },
+			required: ['threadIds'],
+		},
+	},
+	{
+		name: 'create_filter',
+		description: 'Draft and queue a Gmail filter rule for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				from: { type: 'string' },
+				to: { type: 'string' },
+				subject: { type: 'string' },
+				query: { type: 'string' },
+				action: { type: 'string', enum: ['archive', 'markRead', 'star', 'delete'] },
+				label: { type: 'string' },
+			},
+			required: ['action'],
+		},
+	},
+	{
+		name: 'set_auto_reply',
+		description: "Draft and queue turning on Gmail's vacation auto-reply for the person to approve.",
+		input_schema: {
+			type: 'object',
+			properties: {
+				message: { type: 'string' },
+				subject: { type: 'string' },
+				startTime: { type: 'string' },
+				endTime: { type: 'string' },
+				restrictToContacts: { type: 'boolean' },
+				restrictToDomain: { type: 'boolean' },
+			},
+			required: ['message'],
+		},
+	},
+	{
+		name: 'schedule_send',
+		description: "Draft and queue an email to send later. Gmail has no scheduled-send API, so on approval this saves a draft and Alfy tells the person to use Gmail's own Schedule Send.",
+		input_schema: {
+			type: 'object',
+			properties: {
+				to: { type: 'string' },
+				cc: { type: 'string' },
+				bcc: { type: 'string' },
+				subject: { type: 'string' },
+				body: { type: 'string' },
+				sendAt: { type: 'string' },
+			},
+			required: ['to', 'subject', 'body', 'sendAt'],
+		},
+	},
+	{
+		name: 'update_event',
+		description: 'Draft and queue changes to an existing calendar event for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				eventId: { type: 'string' },
+				title: { type: 'string' },
+				startTime: { type: 'string' },
+				endTime: { type: 'string' },
+				location: { type: 'string' },
+				attendees: { type: 'array', items: { type: 'string' } },
+				description: { type: 'string' },
+			},
+			required: ['eventId'],
+		},
+	},
+	{
+		name: 'delete_event',
+		description: 'Queue deleting a calendar event for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { eventId: { type: 'string' } },
+			required: ['eventId'],
+		},
+	},
+	{
+		name: 'schedule_meet',
+		description: 'Draft and queue a calendar event with a Google Meet video link for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				title: { type: 'string' },
+				startTime: { type: 'string' },
+				endTime: { type: 'string' },
+				attendees: { type: 'array', items: { type: 'string' } },
+				description: { type: 'string' },
+			},
+			required: ['title', 'startTime', 'endTime'],
+		},
+	},
+	{
 		name: 'queue_action',
 		description: "Queue an outbound action with no dedicated tool yet, for the person to approve. Nothing happens until they say yes.",
 		input_schema: {
@@ -115,6 +305,26 @@ const TOOLS: Anthropic.Tool[] = [
 const NOT_CONNECTED = (provider: string) => ({
 	error: `${provider} is not connected yet. Ask the person to connect it in Settings.`,
 });
+
+// Every outbound action funnels through here: insert a pending approval_queue row and
+// return, never call the destination API directly. alfy-approve replays it after a yes.
+async function queue(
+	supa: ReturnType<typeof createClient>,
+	userId: string,
+	args: { kind: string; summary: string; draft_content?: string | null; action_type: string; action_payload: Record<string, unknown> },
+) {
+	const { data, error } = await supa.from('approval_queue').insert({
+		user_id: userId,
+		kind: args.kind,
+		summary: args.summary,
+		draft_content: args.draft_content ?? null,
+		action_type: args.action_type,
+		action_payload: args.action_payload,
+		status: 'pending',
+	}).select('id').single();
+	if (error) throw new Error(error.message);
+	return { queued: true, id: data?.id };
+}
 
 async function handleTool(name: string, input: Record<string, unknown>, supa: ReturnType<typeof createClient>, userId: string) {
 	switch (name) {
@@ -146,22 +356,52 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 			if (!token) return NOT_CONNECTED('Calendar');
 			return await calendarListEvents(token, input as { timeMin?: string; timeMax?: string; maxResults?: number });
 		}
-		case 'send_email': {
-			const { data, error } = await supa.from('approval_queue').insert({
+		case 'get_availability': {
+			const token = await getFreshToken(supa, userId, 'calendar');
+			if (!token) return NOT_CONNECTED('Calendar');
+			return await calendarGetAvailability(token, input as { timeMin: string; timeMax: string });
+		}
+		case 'remember_contact': {
+			const email = (input.email as string | undefined) ?? null;
+			const row = {
 				user_id: userId,
+				name: input.name,
+				email,
+				company: input.company ?? null,
+				context_summary: input.context_summary ?? null,
+				tags: input.tags ?? [],
+				birthday: input.birthday ?? null,
+				last_interaction: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			};
+			const { data, error } = email
+				? await supa.from('people').upsert(row, { onConflict: 'user_id,email' }).select('id').single()
+				: await supa.from('people').insert(row).select('id').single();
+			if (error) throw new Error(error.message);
+			return { saved: true, id: data?.id };
+		}
+		case 'recall_contacts': {
+			let q = supa.from('people').select('name, email, company, context_summary, tags, birthday, last_interaction').eq('user_id', userId);
+			const query = input.query as string | undefined;
+			if (query) q = q.or(`name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%,context_summary.ilike.%${query}%`);
+			const tag = input.tag as string | undefined;
+			if (tag) q = q.contains('tags', [tag]);
+			const staleDays = input.stale_days as number | undefined;
+			if (staleDays) q = q.lt('last_interaction', new Date(Date.now() - staleDays * 864e5).toISOString());
+			const { data, error } = await q.order('updated_at', { ascending: false }).limit((input.limit as number) ?? 20);
+			if (error) throw new Error(error.message);
+			return data ?? [];
+		}
+		case 'send_email':
+			return await queue(supa, userId, {
 				kind: 'Email',
 				summary: `Email to ${input.to}: ${input.subject}`,
-				draft_content: input.body,
+				draft_content: input.body as string,
 				action_type: 'send_email',
 				action_payload: { to: input.to, cc: input.cc ?? null, bcc: input.bcc ?? null, subject: input.subject },
-				status: 'pending',
-			}).select('id').single();
-			if (error) throw new Error(error.message);
-			return { queued: true, id: data?.id };
-		}
-		case 'create_event': {
-			const { data, error } = await supa.from('approval_queue').insert({
-				user_id: userId,
+			});
+		case 'create_event':
+			return await queue(supa, userId, {
 				kind: 'Calendar',
 				summary: String(input.title),
 				draft_content: (input.description as string | undefined) ?? null,
@@ -174,24 +414,130 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 					attendees: input.attendees ?? [],
 					description: input.description ?? null,
 				},
-				status: 'pending',
-			}).select('id').single();
-			if (error) throw new Error(error.message);
-			return { queued: true, id: data?.id };
-		}
-		case 'queue_action': {
-			const { data, error } = await supa.from('approval_queue').insert({
-				user_id: userId,
-				kind: input.kind,
-				summary: input.summary,
-				draft_content: input.draft_content ?? null,
-				action_type: input.action_type,
-				action_payload: input.action_payload ?? {},
-				status: 'pending',
-			}).select('id').single();
-			if (error) throw new Error(error.message);
-			return { queued: true, id: data?.id };
-		}
+			});
+		case 'create_label':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `New label: ${input.name}`,
+				action_type: 'create_label',
+				action_payload: { name: input.name },
+			});
+		case 'apply_label':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Label "${input.labelName}" on ${(input.threadIds as unknown[]).length} email(s)`,
+				action_type: 'apply_label',
+				action_payload: { threadIds: input.threadIds, labelName: input.labelName },
+			});
+		case 'remove_label':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Remove label "${input.labelName}" from ${(input.threadIds as unknown[]).length} email(s)`,
+				action_type: 'remove_label',
+				action_payload: { threadIds: input.threadIds, labelName: input.labelName },
+			});
+		case 'archive_email':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Archive ${(input.threadIds as unknown[]).length} email(s)`,
+				action_type: 'archive_email',
+				action_payload: { threadIds: input.threadIds },
+			});
+		case 'mark_as_read':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Mark ${(input.threadIds as unknown[]).length} email(s) as read`,
+				action_type: 'mark_as_read',
+				action_payload: { threadIds: input.threadIds },
+			});
+		case 'mark_as_unread':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Mark ${(input.threadIds as unknown[]).length} email(s) as unread`,
+				action_type: 'mark_as_unread',
+				action_payload: { threadIds: input.threadIds },
+			});
+		case 'delete_email':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Trash ${(input.threadIds as unknown[]).length} email(s)`,
+				action_type: 'delete_email',
+				action_payload: { threadIds: input.threadIds },
+			});
+		case 'create_filter':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `New filter: ${input.action}${input.label ? ` → ${input.label}` : ''}`,
+				action_type: 'create_filter',
+				action_payload: { from: input.from, to: input.to, subject: input.subject, query: input.query, action: input.action, label: input.label },
+			});
+		case 'set_auto_reply':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: 'Turn on vacation auto-reply',
+				draft_content: input.message as string,
+				action_type: 'set_auto_reply',
+				action_payload: {
+					subject: input.subject,
+					startTime: input.startTime,
+					endTime: input.endTime,
+					restrictToContacts: input.restrictToContacts,
+					restrictToDomain: input.restrictToDomain,
+				},
+			});
+		case 'schedule_send':
+			return await queue(supa, userId, {
+				kind: 'Email',
+				summary: `Email to ${input.to} at ${input.sendAt}: ${input.subject}`,
+				draft_content: input.body as string,
+				action_type: 'schedule_send',
+				action_payload: { to: input.to, cc: input.cc ?? null, bcc: input.bcc ?? null, subject: input.subject, sendAt: input.sendAt },
+			});
+		case 'update_event':
+			return await queue(supa, userId, {
+				kind: 'Calendar',
+				summary: `Update ${input.title ?? 'event'}`,
+				draft_content: (input.description as string | undefined) ?? null,
+				action_type: 'update_event',
+				action_payload: {
+					eventId: input.eventId,
+					title: input.title,
+					startTime: input.startTime,
+					endTime: input.endTime,
+					location: input.location,
+					attendees: input.attendees,
+					description: input.description,
+				},
+			});
+		case 'delete_event':
+			return await queue(supa, userId, {
+				kind: 'Calendar',
+				summary: 'Delete calendar event',
+				action_type: 'delete_event',
+				action_payload: { eventId: input.eventId },
+			});
+		case 'schedule_meet':
+			return await queue(supa, userId, {
+				kind: 'Calendar',
+				summary: String(input.title),
+				draft_content: (input.description as string | undefined) ?? null,
+				action_type: 'schedule_meet',
+				action_payload: {
+					title: input.title,
+					startTime: input.startTime,
+					endTime: input.endTime,
+					attendees: input.attendees ?? [],
+					description: input.description ?? null,
+				},
+			});
+		case 'queue_action':
+			return await queue(supa, userId, {
+				kind: input.kind as string,
+				summary: input.summary as string,
+				draft_content: input.draft_content as string | undefined,
+				action_type: input.action_type as string,
+				action_payload: (input.action_payload as Record<string, unknown>) ?? {},
+			});
 		default:
 			throw new Error(`Unknown tool: ${name}`);
 	}
