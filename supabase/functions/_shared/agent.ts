@@ -1,98 +1,133 @@
-// The brain. Anthropic tool-use loop.
+// The brain. Anthropic tool-use loop over Composio's Tool Router.
 //
 // Invariant that mirrors the brand ("Alfy asks first"): the agent NEVER sends or acts
-// externally. Reads are direct; anything outbound is queued via queue_action and only
-// executed after approval (see alfy-approve). Reads/tools reach apps through Composio.
+// externally. Reads run immediately; anything that writes is turned into a pending
+// approval_queue row and only fires after a deliberate tap (see alfy-approve).
 //
-// Lives in _shared/ because Supabase bundles per function folder — alfy-sms-inbound
-// imports this, and a cross-folder import from alfy-agent/ would not deploy.
+// The agent carries THREE tools, not one per integration. Composio's Tool Router scopes a
+// session to every app the person has connected and lets the model search for what it
+// needs, so Alfy works with any toolkit — Slack, Sheets, Notion, whatever gets connected
+// next — with no code change here, and without carrying 200 tool schemas in context.
+//
+// Lives in _shared/ because Supabase bundles per function folder: alfy-sms-inbound and
+// alfy-brief both import it, and a cross-folder import would not deploy.
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js';
 import { requireEnv } from './env.ts';
-import { composioExecute, SLUG_READ_CALENDAR, SLUG_READ_EMAIL } from './composio.ts';
+import { actionDraft, actionSummary, kindOf } from './actions.ts';
+import {
+	composioCreateSession,
+	composioExecuteInSession,
+	composioSearchTools,
+	isReadOnly,
+	type ToolSession,
+} from './composio.ts';
 
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 const ANTHROPIC_API_KEY = requireEnv('ANTHROPIC_API_KEY'); // platform pays inference (consumer SMS)
 
-// A runaway loop over a paid API is the expensive failure mode. Real turns use 2–4.
-const MAX_TURNS = 12;
+// A runaway loop over a paid API is the expensive failure mode. Real turns use 3–6.
+const MAX_TURNS = 14;
+
+export type Supa = SupabaseClient;
 
 const SYSTEM_PROMPT = `You are Alfy — a warm, comfortably competent assistant a person texts.
 
 Voice: plain words, contractions, no exclamation marks, no emoji, sentence case. Report what
 you did, then ask. Max 5 lines. Sign off "— A". Never say "as an AI". Never use hype words.
 
+HOW YOU WORK
+You reach the person's apps through two tools. find_tools searches everything they've
+connected — email, calendar, chat, spreadsheets, files — and hands back the exact tools plus
+the arguments each one takes. use_tool runs one.
+
+Always find_tools before use_tool. Never invent a tool name or an argument name; use the
+schema you were given. If find_tools says an app isn't connected, say so plainly and tell
+them they can link it in the dashboard — don't pretend or work around it.
+
 RULES — never break these:
-1. You never send, book, buy, or pay directly. Reading is always fine — do it freely.
-2. For anything that leaves the person (an email, a calendar invite, an order), call
-   queue_action. It waits for their yes in the dashboard; they get a link to approve.
+1. Reading is always fine. Do it freely and without asking.
+2. Anything that WRITES — sends, posts, books, buys, changes, deletes — does not happen when
+   you call it. It becomes a request waiting for their yes, and they get a link. Say so:
+   "it's waiting for your yes", never "I sent it".
 3. Draft in the person's voice using their context. If you lack something you need, ask.
-4. Be specific: say what you found, what you drafted, and that it's waiting for their yes.
-5. The summary you put on queue_action is the ONLY thing the person reads before saying yes.
-   Name the actual recipient, date, or amount in it — never a generic label like "Send an email".`;
+4. Be specific about what you found and what's waiting.`;
 
 const TOOLS: Anthropic.Tool[] = [
 	{
 		name: 'get_context',
-		description: "The person's profile, people they know, and standing okays.",
+		description: "The person's profile, the people they know, and their standing okays.",
 		input_schema: { type: 'object', properties: {} },
 	},
 	{
-		name: 'read_email',
-		description: 'Read recent or matching emails (safe, read-only).',
+		name: 'find_tools',
+		description:
+			'Search everything the person has connected for tools that can do a thing. Returns tool ' +
+			'names with the arguments each accepts, plus which apps are actually connected. ' +
+			'Call this before use_tool, and search by what you want to accomplish ' +
+			'("read recent slack messages in #general", "send an email").',
 		input_schema: {
 			type: 'object',
-			properties: {
-				query: { type: 'string', description: "Gmail search syntax, e.g. 'from:dana subject:thursday'" },
-				limit: { type: 'number', default: 10 },
-			},
+			properties: { query: { type: 'string', description: 'What you are trying to do, in plain words' } },
+			required: ['query'],
 		},
 	},
 	{
-		name: 'read_calendar',
-		description: 'Look at the calendar for openings/conflicts (read-only).',
-		input_schema: {
-			type: 'object',
-			properties: { timeMin: { type: 'string' }, timeMax: { type: 'string' } },
-		},
-	},
-	{
-		name: 'queue_action',
-		description: 'Queue an outbound action for the person to approve. Nothing happens until they say yes.',
+		name: 'use_tool',
+		description:
+			'Run one tool returned by find_tools. Reads run immediately and return their result. ' +
+			'Anything that writes is queued for the person to approve — you will get back ' +
+			'{queued:true}, which means it has NOT happened yet.',
 		input_schema: {
 			type: 'object',
 			properties: {
-				kind: { type: 'string', description: 'Card label: Email | Calendar | Order' },
-				summary: {
-					type: 'string',
-					description: 'What they are approving, specific enough to decide on: "Reply to Dana (dana@acme.com) that Thursday works"',
-				},
-				draft_content: { type: 'string', description: 'The draft they will see and approve' },
-				action_type: { type: 'string', description: 'gmail.send | gcal.create_event' },
-				action_payload: {
-					type: 'object',
-					description:
-						'Args replayed via Composio on approval. gmail.send: {recipient_email, subject, body}. ' +
-						'gcal.create_event: {summary, start_datetime (e.g. "2026-01-16T13:00:00"), timezone (IANA), ' +
-						'event_duration_hour, event_duration_minutes, attendees}.',
-				},
+				tool: { type: 'string', description: 'The exact tool name from find_tools' },
+				arguments: { type: 'object', description: 'Arguments matching that tool\'s schema' },
 			},
-			required: ['kind', 'summary', 'action_type', 'action_payload'],
+			required: ['tool', 'arguments'],
 		},
 	},
 ];
 
-// Untyped schema on purpose — there are no generated DB types in this repo. Spelling it
-// `SupabaseClient` (not `ReturnType<typeof createClient>`) keeps the default generics;
-// the ReturnType form resolves the schema to `never` and every .insert() stops compiling.
-export type Supa = SupabaseClient;
-
-// Set when a turn queues something, so the caller can deep-link the approval SMS at the
-// item this turn actually created rather than whatever happened to be pending.
 interface TurnState {
 	queuedId: string | null;
+	session: ToolSession | null;
+	/** chars of tool output pulled back this turn — drives the synthesis tier */
+	read: number;
+}
+
+async function queueForApproval(
+	supa: Supa,
+	userId: string,
+	slug: string,
+	payload: Record<string, unknown>,
+	turn: TurnState,
+) {
+	const { data, error } = await supa.from('approval_queue').insert({
+		user_id: userId,
+		kind: kindOf(slug),
+		summary: actionSummary(slug, payload),
+		draft_content: actionDraft(payload),
+		action_type: slug,
+		action_payload: payload,
+		status: 'pending',
+	}).select('id').single();
+	if (error) throw new Error(error.message);
+	turn.queuedId = (data?.id as string) ?? null;
+	return {
+		queued: true,
+		note: 'Waiting for their yes. It has not happened yet — tell them it is waiting, not that it is done.',
+	};
+}
+
+async function session(supa: Supa, userId: string, turn: TurnState): Promise<ToolSession> {
+	if (turn.session) return turn.session;
+	// Lazy: a turn that never touches an app never pays for a session.
+	const { data: user } = await supa.from('users').select('timezone').eq('id', userId).single();
+	turn.session = await composioCreateSession(userId, user?.timezone as string | undefined);
+	return turn.session;
 }
 
 async function handleTool(
@@ -111,29 +146,30 @@ async function handleTool(
 			]);
 			return { user, people: people ?? [], standing_okays: perms ?? [] };
 		}
-		case 'read_email':
-			return await composioExecute(userId, SLUG_READ_EMAIL, {
-				query: input.query ?? '',
-				max_results: input.limit ?? 10,
-			});
-		case 'read_calendar':
-			return await composioExecute(userId, SLUG_READ_CALENDAR, {
-				timeMin: input.timeMin,
-				timeMax: input.timeMax,
-			});
-		case 'queue_action': {
-			const { data, error } = await supa.from('approval_queue').insert({
-				user_id: userId,
-				kind: input.kind,
-				summary: input.summary,
-				draft_content: input.draft_content ?? null,
-				action_type: input.action_type,
-				action_payload: input.action_payload ?? {},
-				status: 'pending',
-			}).select('id').single();
-			if (error) throw new Error(error.message);
-			turn.queuedId = (data?.id as string) ?? null;
-			return { queued: true, id: data?.id };
+		case 'find_tools': {
+			const s = await session(supa, userId, turn);
+			const found = await composioSearchTools(s.sessionId, String(input.query ?? ''));
+			return {
+				tools: found.tools.map((t) => ({
+					tool: t.slug,
+					description: t.description,
+					arguments: t.inputSchema,
+					// Told plainly so the model reports honestly rather than claiming it sent something.
+					needs_approval: !isReadOnly(t.slug),
+				})),
+				connected_apps: found.connected,
+			};
+		}
+		case 'use_tool': {
+			const slug = String(input.tool ?? '');
+			const args = (input.arguments as Record<string, unknown>) ?? {};
+			if (!slug) throw new Error('use_tool needs a tool name from find_tools');
+
+			// THE approval boundary. Unrecognised verbs count as writes — see isReadOnly.
+			if (!isReadOnly(slug)) return await queueForApproval(supa, userId, slug, args, turn);
+
+			const s = await session(supa, userId, turn);
+			return await composioExecuteInSession(s.sessionId, slug, args);
 		}
 		default:
 			throw new Error(`Unknown tool: ${name}`);
@@ -144,12 +180,12 @@ async function handleTool(
 // Most inbound texts are mechanical: look at the calendar, check for a reply, say yes.
 // Haiku handles those. Two kinds of turn are worth more, and each has its own trigger:
 //
-//   1. DRAFTING — something a person will send under their own name. Detected by
-//      queue_action, which is already the product's safety boundary, so it's free.
+//   1. DRAFTING — something a person will send under their own name. Detected by a write
+//      being queued, which is already the product's safety boundary, so it's free.
 //   2. SYNTHESIS — "give me a quick overview of the Slack channel / this spreadsheet".
-//      Read-only, so it never trips trigger 1, but it's the harder job: a lot of
-//      content in, a short useful answer out. Detected by how much the reads dragged
-//      back — the thing that makes it hard is the thing that makes it measurable.
+//      Read-only, so it never trips trigger 1, but it's the harder job: a lot of content
+//      in, a short useful answer out. Detected by how much the reads dragged back — the
+//      thing that makes it hard is the thing that makes it measurable.
 //
 // Neither needs a classifier call or an extra round trip.
 //
@@ -157,7 +193,7 @@ async function handleTool(
 // rejects output_config.effort with a 400, so it gets neither. Don't merge these.
 const FAST = {
 	model: 'claude-haiku-4-5',
-	max_tokens: 4096, // enough for tool calls plus a 5-line reply
+	max_tokens: 4096,
 } as const;
 
 const CAREFUL = {
@@ -168,34 +204,45 @@ const CAREFUL = {
 	output_config: { effort: 'medium' },
 } as const;
 
-// Characters of tool output in one turn past which synthesis stops being Haiku's job.
-// Roughly: a couple of emails stays under it; a channel digest or a sheet dump doesn't.
-// ponytail: a flat threshold, not a token count — tune it on real traffic if it misfires.
 const SYNTHESIS_CHARS = 8000;
 
 export interface AgentTurn {
 	reply: string;
 	queuedId: string | null;
-	tier: 'fast' | 'careful'; // which model actually answered — the cost signal when testing
+	tier: 'fast' | 'careful';
 }
 
-// Runs one inbound message through the loop.
-export async function runAgent(userId: string, message: string, history: Anthropic.MessageParam[] = []): Promise<AgentTurn> {
+export interface RunOptions {
+	/** Start on the careful tier — the daily brief is synthesis by definition. */
+	careful?: boolean;
+	/** Extra instructions for this run (e.g. "no human is present"). */
+	extraSystem?: string;
+}
+
+export async function runAgent(
+	userId: string,
+	message: string,
+	opts: RunOptions = {},
+): Promise<AgentTurn> {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 	const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-	const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: message }];
-	const turn: TurnState = { queuedId: null };
-	let careful = false;
-	let read = 0; // chars of tool output pulled back this turn — drives the synthesis tier
+	const messages: Anthropic.MessageParam[] = [{ role: 'user', content: message }];
+	const turn: TurnState = { queuedId: null, session: null, read: 0 };
+	let careful = opts.careful ?? false;
 
 	const text = (res: Anthropic.Message) =>
 		res.content.filter((b) => b.type === 'text').map((b) => (b as Anthropic.TextBlock).text).join('');
 	const done = (reply: string): AgentTurn => ({ reply, queuedId: turn.queuedId, tier: careful ? 'careful' : 'fast' });
 
 	for (let i = 0; i < MAX_TURNS; i++) {
+		// Composio's session prompt explains its own meta-tools; appending it beats
+		// second-guessing them here. Only present once a session exists.
+		const system = [SYSTEM_PROMPT, opts.extraSystem, turn.session?.assistivePrompt]
+			.filter(Boolean).join('\n\n');
+
 		const res = await anthropic.messages.create({
 			...(careful ? CAREFUL : FAST),
-			system: SYSTEM_PROMPT,
+			system,
 			tools: TOOLS,
 			messages,
 		});
@@ -208,11 +255,15 @@ export async function runAgent(userId: string, message: string, history: Anthrop
 			return done(text(res));
 		}
 
-		// Escalate before drafting, not after: discard this whole assistant turn and let the
-		// careful model decide for itself, with every read it already has still in context.
-		// Discarding the turn wholesale (rather than running the other tools in it) keeps
-		// every tool_use paired with a tool_result, which the API requires.
-		if (!careful && res.content.some((b) => b.type === 'tool_use' && b.name === 'queue_action')) {
+		// Drafting trigger: a write is about to be queued. Discard this whole assistant turn
+		// so the careful model composes it, with every read it already has still in context.
+		// Discarding wholesale (rather than running the turn's other tools) keeps every
+		// tool_use paired with a tool_result, which the API requires.
+		const writing = res.content.some((b) =>
+			b.type === 'tool_use' && b.name === 'use_tool' &&
+			!isReadOnly(String((b.input as { tool?: string })?.tool ?? ''))
+		);
+		if (!careful && writing) {
 			careful = true;
 			continue;
 		}
@@ -228,11 +279,11 @@ export async function runAgent(userId: string, message: string, history: Anthrop
 				}
 			}
 		}
-		// Synthesis trigger. Unlike the drafting one above, nothing is discarded — the reads
-		// were fine, it's the answering that wants the better model. Keep the results and
-		// upgrade whoever reads them next.
-		read += results.reduce((n, r) => n + String(r.content).length, 0);
-		if (!careful && read > SYNTHESIS_CHARS) careful = true;
+
+		// Synthesis trigger. Unlike drafting, nothing is discarded — the reads were fine,
+		// it's the answering that wants the better model.
+		turn.read += results.reduce((n, r) => n + String(r.content).length, 0);
+		if (!careful && turn.read > SYNTHESIS_CHARS) careful = true;
 
 		messages.push({ role: 'assistant', content: res.content });
 		messages.push({ role: 'user', content: results });

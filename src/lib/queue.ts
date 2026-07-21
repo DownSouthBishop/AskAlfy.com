@@ -1,4 +1,8 @@
 import { supabase } from './supabase';
+// Same module the agent uses to build these rows — it has no imports of its own, so both
+// sides can share it. One implementation means the card cannot describe the action
+// differently from the way it was queued.
+import { actionFields, type ActionField } from '../../supabase/functions/_shared/actions';
 
 // Data layer for the dashboard's three tabs. Reads Supabase when configured;
 // falls back to demo data so a fresh fork renders with zero setup.
@@ -9,6 +13,8 @@ export interface QueueItem {
 	kind: string;
 	summary: string;
 	draft: string;
+	/** Derived from action_payload — the actual recipient, file, or range being approved. */
+	fields: ActionField[];
 }
 
 export interface HandledItem {
@@ -22,10 +28,24 @@ export interface HandledItem {
 
 export type Range = 'week' | 'lastweek' | 'all';
 
+// Demo rows carry real payloads and run through the same actionFields() the live cards do,
+// so the demo shows the product rather than a prettier version of it.
 export const DEMO_QUEUE: QueueItem[] = [
-	{ id: 1, kind: 'Email', summary: 'Reply to Dana about Thursday', draft: "Thursday works — I'll bring the numbers from last quarter. See you at 2. — Jordan" },
-	{ id: 2, kind: 'Calendar', summary: 'Book the dentist, Tuesday 9:00', draft: 'Dr. Okafor has Tuesday 9:00 open. It fits before your 10:30 call.' },
-	{ id: 3, kind: 'Order', summary: "Mom's birthday flowers, $34", draft: 'Lily bouquet from the florist she used last year. Arrives Friday, card included.' },
+	{
+		id: 1, kind: 'Email', summary: 'Reply to Dana about Thursday',
+		draft: "Thursday works — I'll bring the numbers from last quarter. See you at 2. — Jordan",
+		fields: actionFields({ recipient_email: 'dana@northbridge.com', subject: 'Re: Thursday' }),
+	},
+	{
+		id: 2, kind: 'Calendar', summary: 'Book the dentist, Tuesday 9:00',
+		draft: 'Dr. Okafor has Tuesday 9:00 open. It fits before your 10:30 call.',
+		fields: actionFields({ summary: 'Dentist — Dr. Okafor', start_datetime: 'Tuesday 9:00 AM' }),
+	},
+	{
+		id: 3, kind: 'Slack', summary: 'Post the Friday update to #team',
+		draft: "Shipping the billing fix today. Numbers for last quarter are in the sheet.",
+		fields: actionFields({ channel: '#team', text: 'Shipping the billing fix today.' }),
+	},
 ];
 
 export const DEMO_HANDLED: HandledItem[] = [
@@ -38,10 +58,16 @@ export async function loadToday(): Promise<QueueItem[]> {
 	if (!supabase) return DEMO_QUEUE;
 	const { data } = await supabase
 		.from('approval_queue')
-		.select('id, kind, summary, draft_content')
+		.select('id, kind, summary, draft_content, action_payload')
 		.eq('status', 'pending')
 		.order('created_at', { ascending: false });
-	return (data ?? []).map((r) => ({ id: r.id, kind: r.kind, summary: r.summary, draft: r.draft_content ?? '' }));
+	return (data ?? []).map((r) => ({
+		id: r.id,
+		kind: r.kind,
+		summary: r.summary,
+		draft: r.draft_content ?? '',
+		fields: actionFields((r.action_payload ?? {}) as Record<string, unknown>),
+	}));
 }
 
 export async function loadHandled(range: Range): Promise<HandledItem[]> {

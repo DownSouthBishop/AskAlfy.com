@@ -81,6 +81,20 @@ function QueueCard({
 			<p className="label-caps text-muted">{item.kind}</p>
 			<h2 className="mt-2 font-display text-h2 font-medium">{item.summary}</h2>
 
+			{/* What is actually about to happen — read straight off the queued action, not
+			    from anything Alfy wrote about it. Saying yes to "send an email" without
+			    seeing who it goes to isn't really saying yes. */}
+			{item.fields.length > 0 && (
+				<dl className="mt-3 space-y-1.5">
+					{item.fields.map((f) => (
+						<div key={f.label} className="flex gap-3 text-small">
+							<dt className="w-24 shrink-0 text-muted">{f.label}</dt>
+							<dd className="min-w-0 flex-1 break-words text-espresso">{f.value}</dd>
+						</div>
+					))}
+				</dl>
+			)}
+
 			{editing ? (
 				<textarea
 					value={draft}

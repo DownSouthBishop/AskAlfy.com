@@ -4,7 +4,7 @@
 // Composio, texts a confirmation.
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { composioExecute, TOOL_SLUG } from '../_shared/composio.ts';
+import { composioExecute, isReadOnly } from '../_shared/composio.ts';
 import { requireEnv } from '../_shared/env.ts';
 import { CORS, JSON_CORS } from '../_shared/cors.ts';
 import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
@@ -46,10 +46,13 @@ Deno.serve(async (req) => {
 
 	if (!claimed) return new Response(JSON.stringify({ error: 'not approvable' }), { status: 409, headers: JSON_CORS });
 
-	const slug = TOOL_SLUG[claimed.action_type as string];
-	if (!slug) {
+	// action_type is the Composio tool slug the agent queued. Re-derive the read/write call
+	// here rather than trusting the row: the queue is data, and this is the last gate before
+	// something actually leaves. A read has no business in the approval queue at all.
+	const slug = String(claimed.action_type ?? '');
+	if (!slug || isReadOnly(slug)) {
 		await supa.from('approval_queue').update({ status: 'failed' }).eq('id', claimed.id);
-		return new Response(JSON.stringify({ error: `no tool for ${claimed.action_type}` }), { status: 400, headers: JSON_CORS });
+		return new Response(JSON.stringify({ error: `not an approvable action: ${slug || '(none)'}` }), { status: 400, headers: JSON_CORS });
 	}
 
 	try {

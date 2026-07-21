@@ -95,6 +95,7 @@ if (!migrations) {
 		'COMPOSIO_API_KEY', 'COMPOSIO_AUTHCFG_GMAIL', 'COMPOSIO_AUTHCFG_CALENDAR',
 		'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER',
 		'PUBLIC_APP_URL',
+		'INTERNAL_FUNCTION_SECRET', // must match the value baked into the cron.schedule() call
 	];
 	const secretList = sh('supabase', ['secrets', 'list']) ?? '';
 	const missing = REQUIRED_SECRETS.filter((s) => !secretList.includes(s));
@@ -103,7 +104,7 @@ if (!migrations) {
 }
 
 // ── 4. Functions deployed ────────────────────────────────────────────────────
-const FUNCTIONS = ['alfy-agent', 'alfy-sms-inbound', 'alfy-link', 'alfy-approve', 'alfy-connect'];
+const FUNCTIONS = ['alfy-agent', 'alfy-sms-inbound', 'alfy-link', 'alfy-approve', 'alfy-connect', 'alfy-brief'];
 const supaUrl = globalThis.__alfyEnv?.PUBLIC_SUPABASE_URL;
 
 if (!supaUrl) {

@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "doctor": "node scripts/doctor.mjs",
     "check:functions": "npx --yes deno@2 check --node-modules-dir=auto supabase/functions/*/index.ts",
+    "check:actions": "node --experimental-strip-types scripts/check-actions.mjs",
     "astro": "astro"
   },
   "dependencies": {

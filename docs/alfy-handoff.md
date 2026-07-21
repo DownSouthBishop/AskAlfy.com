@@ -65,7 +65,22 @@ not sessions, and must skip the JWT gate:
 supabase functions deploy alfy-agent alfy-approve alfy-connect
 supabase functions deploy alfy-sms-inbound --no-verify-jwt   # caller is Twilio (signature-authenticated)
 supabase functions deploy alfy-link       --no-verify-jwt    # caller has no session yet — that's the point
+supabase functions deploy alfy-brief      --no-verify-jwt    # caller is pg_cron (x-runner-key)
 ```
+
+**4b — Schedule the daily brief.** The cron entry can't live in a migration: pg_net sends
+the shared secret as a literal in the SQL body, which must never be committed. Run it once,
+live, against the project — same value you set as `INTERNAL_FUNCTION_SECRET`:
+```sql
+select cron.schedule('alfy-brief', '0 * * * *', $cron$
+  select net.http_post(
+    url     := 'https://<ref>.supabase.co/functions/v1/alfy-brief',
+    headers := '{"Content-Type":"application/json","x-runner-key":"<INTERNAL_FUNCTION_SECRET>"}'::jsonb
+  );
+$cron$);
+```
+It ticks hourly and sends to whoever's *local* brief hour has just come round, so one entry
+covers every timezone. Verify with `select * from cron.job;`.
 
 **5 — Twilio → Supabase**
 - Twilio console → the number → Messaging → inbound webhook → the `alfy-sms-inbound`
@@ -86,10 +101,21 @@ dead `sms:` link can't reach production.
 
 ## Smoke test
 
-Text the number → reply arrives with an `Approve:` link → tap it → lands on that exact
-pending card → tap Approve → the action fires → confirmation text arrives.
+**The loop:** text the number → reply arrives with an `Approve:` link → tap it → lands on
+that exact pending card, showing the real recipient/channel/range → tap Approve → the action
+fires → confirmation text arrives.
 
-That is the entire product. If it works, you're live.
+**A read:** "what did I miss in Slack today" → answer, nothing queued.
+
+**The brief:** set `brief_hour` to the next hour for your own row, wait for the tick, or
+fire it by hand:
+```bash
+curl -X POST https://<ref>.supabase.co/functions/v1/alfy-brief -H "x-runner-key: $INTERNAL_FUNCTION_SECRET"
+```
+It returns `{claimed, sent, failed, deferred}`. Note `claim_briefs` marks people done
+**before** running, so a second immediate call correctly claims nobody.
+
+If those three work, you're live.
 
 ---
 
@@ -101,22 +127,21 @@ These were the open `VERIFY` items. All confirmed against `docs.composio.dev`:
 |---|---|
 | Host + version | `https://backend.composio.dev/api/v3.1` — **v3.1, not v3**; the v3 paths 404 |
 | Auth header | `x-api-key` |
-| Execute | `POST /tools/execute/{tool_slug}`, body `{user_id, arguments}` |
+| Session | `POST /tool_router/session`, body `{user_id, toolkits: null}` → `{session_id, experimental.assistive_prompt}` |
+| Search | `POST /tool_router/session/{id}/search`, body `{queries:[{query}]}` → `{tool_schemas, toolkit_connection_statuses}` |
+| Execute | `POST /tool_router/session/{id}/execute`, body `{tool_slug, arguments}` |
+| Direct execute | `POST /tools/execute/{slug}`, body `{user_id, arguments}` — used by `alfy-approve`, which fires later with no live session |
 | Connect | `POST /connected_accounts/link`, body `{user_id, auth_config_id, callback_url}` → `redirect_url` |
 | Result envelope | `{data, error, successful}` — `successful:false` arrives as **HTTP 200**, so it must be checked, not assumed |
-| Slugs | `GMAIL_SEND_EMAIL`, `GMAIL_FETCH_EMAILS`, `GOOGLECALENDAR_CREATE_EVENT` |
 
-All of it lives in `supabase/functions/_shared/composio.ts` — one file to edit if a version
-or slug moves.
+All of it lives in `supabase/functions/_shared/composio.ts` — one file to edit if a path
+or version moves. **No tool slugs are hardcoded anywhere**: the model discovers them through
+`find_tools`, so there is no list to maintain and nothing to get stale.
 
-**Two things still need a live key to prove**, because docs can't:
-- `GOOGLECALENDAR_FIND_EVENT` is the one slug the reference didn't confirm outright. If a
-  read-calendar call 404s, `SLUG_READ_CALENDAR` in `_shared/composio.ts` is the string to
-  change (`GOOGLECALENDAR_FREE_BUSY_QUERY` is the documented alternative).
-- `GOOGLECALENDAR_CREATE_EVENT` takes `start_datetime` + `event_duration_hour` /
-  `event_duration_minutes` + an IANA `timezone` — **not** the raw Google API's
-  `start`/`end` objects. The agent's `queue_action` description already spells this out;
-  confirm the first real invite lands at the right time.
+**What still needs a live key to prove**, because docs can't: that `find_tools` returns
+usable schemas for a real connected account, and that the verb heuristic classifies that
+account's actual tools correctly. Send yourself one of each — a read and a write — and check
+the write lands in Today rather than firing.
 
 ---
 
@@ -155,21 +180,40 @@ objects.
 
 ---
 
-## The next real piece of work: a tool surface that follows the connections
+## How Alfy reaches apps — and how approval survives it
 
-Alfy's pitch is that you text it about whatever you've connected — "what did I miss in
-Slack", "quick overview of the Q3 sheet". The **model tiering is ready for those**; the
-tool surface is not.
+Alfy carries **three** tools, not one per integration: `get_context`, `find_tools`,
+`use_tool`. Composio's Tool Router scopes a session to every app the person has connected
+(`toolkits: null`) and the model searches for what it needs. So a newly connected app works
+with **no code change here** — and five connected apps don't put 200 tool schemas in every
+request, which would cost more per text than the model does.
 
-Right now `_shared/agent.ts` exposes four hardcoded tools mapping to two fixed Composio
-slugs (Gmail, Calendar). Connect Slack in Composio today and Alfy still can't see it —
-there is no tool for it, at any model tier.
+The approval boundary sits in `use_tool`:
 
-The fix is not more hardcoded slugs. Composio's own model is that a user's connected
-toolkits determine their available tools (`composio.tools.get(user_id, toolkits=[…])`),
-so the read side should be built from `connections` at turn start rather than compiled in.
-That is a real change to `TOOLS` and `handleTool` — worth scoping deliberately, and worth
-doing before adding a third integration by hand.
+```
+read  → runs immediately
+write → becomes a pending approval_queue row; the model is told it has NOT happened
+```
+
+Composio's tool metadata has no read/write flag — only tags, scopes, `no_auth` — so
+`isReadOnly()` (in `_shared/actions.ts`) infers it from the slug: read-only iff it names a
+read verb *and* names no write verb, matching tokens anywhere in the slug because the verb
+isn't always first (`GOOGLESHEETS_VALUES_GET` ends with one).
+
+**It fails closed.** An unrecognised verb counts as a write. A toolkit nobody has seen
+before gets queued for approval rather than executed. Worst case is a needless tap; never
+an unapproved send. `npm run check:actions` pins that behaviour down, including the
+unknown-verb cases — **run it if you touch the verb lists.**
+
+`alfy-approve` re-derives the same call before firing, rather than trusting the queued row.
+
+### The approval card shows the action, not a description of it
+
+`summary`, the card fields, and the draft are all derived from the tool slug and payload in
+`_shared/actions.ts` — the browser imports the exact module the agent writes with. The card
+therefore cannot describe an action other than the one queued. Approving "send an email"
+without seeing the recipient isn't consent, and with Slack posts and sheet edits in the
+queue it stops being a detail.
 
 ---
 
