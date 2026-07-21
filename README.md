@@ -7,9 +7,11 @@ You text Alfy. It reads across whatever you've connected — mail, calendar, cha
 spreadsheets, files — does the reading itself, drafts anything that needs to go out, and
 asks before sending. Every morning it texts you a brief of what actually matters.
 
-**The one rule: nothing leaves without a yes.** Alfy reads freely and acts never. Anything
-that sends, posts, books, buys, changes, or deletes becomes a card you tap to approve. That
-isn't a prompt instruction — it's enforced in the code, and the section below explains where.
+**The one rule: nothing leaves without a yes** — either this one, or one you already gave for
+exactly this. Alfy reads freely. Anything that sends, posts, books, buys, changes, or deletes
+becomes a card you tap to approve; once you've approved the same thing enough times, Alfy
+asks whether it should stop asking. That isn't a prompt instruction — it's enforced in the
+code, and the sections below explain where.
 
 ---
 
@@ -33,12 +35,16 @@ npm run doctor   # prints exactly what's still missing, with the command to fix 
 
 ```
         text ──▶ alfy-sms-inbound ──▶ agent loop ──▶ Composio Tool Router ──▶ your apps
-                  (Twilio sig)            │                                   (read)
+                  (Twilio sig)            │                                    (read)
                                           │
-                                    write?├──▶ approval_queue ──▶ you tap yes
-                                                                       │
-                       confirmation text ◀── alfy-approve ◀────────────┘
-                                                    └──▶ Composio (write)
+                                    write?│
+                                          ├─ standing okay for this exact thing?
+                                          │        └──▶ sends now ──▶ shows in Handled
+                                          │
+                                          └─ otherwise ──▶ approval_queue ──▶ you tap yes
+                                                                                   │
+                                   confirmation text ◀── alfy-approve ◀────────────┘
+                                    (+ maybe an offer)         └──▶ Composio (write)
 
         pg_cron (hourly) ──▶ alfy-brief ──▶ agent loop ──▶ your morning text
 ```
