@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { GOOGLE_CLIENT_ID, GOOGLE_SCOPES } from './config';
 
 // Data layer for the dashboard's three tabs. Reads Supabase when configured;
 // falls back to demo data so a fresh fork renders with zero setup.
@@ -81,11 +82,23 @@ export async function skipItem(id: string | number): Promise<void> {
 	await supabase.from('approval_queue').update({ status: 'skipped', decided_at: new Date().toISOString() }).eq('id', id);
 }
 
-// Kicks off a Composio OAuth connect (Gmail/Calendar) and redirects to the consent screen.
-export async function connectProvider(provider: string): Promise<void> {
-	if (!supabase) return;
-	const { data } = await supabase.functions.invoke('alfy-connect', { body: { provider } });
-	if (data?.redirect_url) window.location.href = data.redirect_url;
+// Builds the Google consent-screen URL client-side (GOOGLE_CLIENT_ID is public) and
+// redirects straight to it. The callback page (/auth/google-callback) hands the returned
+// code to alfy-connect, which does the actual token exchange.
+export function connectProvider(provider: string): void {
+	const scopes = GOOGLE_SCOPES[provider];
+	if (!scopes) return;
+	const redirectUri = `${window.location.origin}/auth/google-callback`;
+	const params = new URLSearchParams({
+		client_id: GOOGLE_CLIENT_ID,
+		redirect_uri: redirectUri,
+		response_type: 'code',
+		scope: scopes.join(' '),
+		access_type: 'offline',
+		prompt: 'consent',
+		state: provider,
+	});
+	window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
 export interface Breakdown {
