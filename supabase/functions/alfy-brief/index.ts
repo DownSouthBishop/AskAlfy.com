@@ -54,7 +54,9 @@ Deno.serve(async (req) => {
 	let failed = 0;
 	let deferred = 0;
 
-	for (const person of (due ?? []) as { user_id: string; phone_e164: string }[]) {
+	// Column names are brief_* so the function's OUT params can't shadow the table columns
+	// it reads — see 0004_brief_integrity.sql.
+	for (const person of (due ?? []) as { brief_user_id: string; brief_phone: string }[]) {
 		if (Date.now() - startedAt > BUDGET_MS) {
 			deferred++;
 			continue;
@@ -62,13 +64,13 @@ Deno.serve(async (req) => {
 		try {
 			// Careful tier from the first call: a brief is synthesis by definition, so there's
 			// no point paying for a fast pass that will escalate on volume anyway.
-			const turn = await runAgent(person.user_id, PROMPT, { careful: true });
+			const turn = await runAgent(person.brief_user_id, PROMPT, { careful: true });
 			const body = turn.reply.trim();
 			if (!body) continue;
 
-			const segments = await sendSms(person.phone_e164, body);
+			const segments = await sendSms(person.brief_phone, body);
 			await supa.from('messages').insert({
-				user_id: person.user_id,
+				user_id: person.brief_user_id,
 				from_phone: TWILIO_FROM,
 				direction: 'outbound',
 				body,
@@ -78,7 +80,7 @@ Deno.serve(async (req) => {
 		} catch (err) {
 			// Already claimed, so this person just waits for tomorrow. Logged, not retried —
 			// a retry loop on a paid API is worse than a missed digest.
-			console.error(`brief failed for ${person.user_id}`, err);
+			console.error(`brief failed for ${person.brief_user_id}`, err);
 			failed++;
 		}
 	}

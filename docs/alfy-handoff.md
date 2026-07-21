@@ -44,8 +44,14 @@ cp .env.local.example .env.local     # fill PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE
 **2 — Schema** → turns `supabase link` + `migrations` green
 ```bash
 supabase link --project-ref <ref>
-supabase db push                     # applies 0001_alfy_core + 0002_approval_hardening
+supabase db push                     # applies 0001 … 0004
 ```
+
+> **Run this against a throwaway project first.** None of the SQL has ever executed. The one
+> ordering risk: `0002` does `alter type approval_status add value`, which is fine in its own
+> transaction but fails if a migration runner wraps every file in a single one. On a fresh
+> project all four apply at once, which is exactly the case that would expose it. Five
+> minutes on a scratch project tells you, and costs nothing if it's fine.
 
 **3 — Secrets** → turns `secrets` green. Names are listed in `.env.local.example`; every
 function calls `requireEnv`, so a missing one fails at boot with its own name rather than
