@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react';
 import {
 	DEMO_QUEUE,
 	DEMO_HANDLED,
+	DEMO_TRUST,
 	loadToday,
 	loadHandled,
+	loadTrust,
 	approveItem,
 	skipItem,
+	revokeTrust,
 	connectProvider,
 	breakdown,
 	type QueueItem,
 	type HandledItem,
+	type TrustItem,
 	type Range,
 } from '../lib/queue';
 
@@ -28,10 +32,8 @@ const PEOPLE = [
 	{ name: 'Mom', note: 'Birthday June 14. Likes lilies, not roses.' },
 ];
 
-const TRUST = [
-	{ line: 'Sends calendar replies without asking', since: 'you granted this Jan 12' },
-	{ line: 'Pays the wifi bill each month', since: 'you granted this Feb 3' },
-];
+// Standing okays now come from the database — Alfy earns them by asking, so they can't be
+// a fixed list. See DEMO_TRUST in lib/queue for the no-backend fallback.
 
 const reduceMotion =
 	typeof window !== 'undefined' &&
@@ -148,15 +150,24 @@ export default function AlfyDashboard() {
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [queue, setQueue] = useState<QueueItem[]>(DEMO_QUEUE);
 	const [handled, setHandled] = useState<HandledItem[]>(DEMO_HANDLED);
+	const [trust, setTrust] = useState<TrustItem[]>(DEMO_TRUST);
 	const [range, setRange] = useState<Range>('week');
 
 	// Hydrate from Supabase when it's configured; demo data shows until then.
 	useEffect(() => {
 		loadToday().then(setQueue);
+		loadTrust().then(setTrust);
 	}, []);
 	useEffect(() => {
 		loadHandled(range).then(setHandled);
 	}, [range]);
+
+	// Revoking is a safety control, not a preference — drop it from the list immediately
+	// rather than waiting on the round trip.
+	function handleRevoke(item: TrustItem) {
+		setTrust((t) => t.filter((i) => i.id !== item.id));
+		void revokeTrust(item.id);
+	}
 
 	function handleApprove(item: QueueItem) {
 		setQueue((q) => q.filter((i) => i.id !== item.id));
@@ -388,12 +399,13 @@ export default function AlfyDashboard() {
 						<div className="rounded-3xl border border-fern/20 bg-fern-tint/40 p-6">
 							<p className="label-caps text-fern">Trust</p>
 							<ul className="mt-3 space-y-3">
-								{TRUST.map((t) => (
-									<li key={t.line} className="text-body text-espresso">
+								{trust.map((t) => (
+									<li key={t.id} className="text-body text-espresso">
 										{t.line}
 										<span className="text-secondary"> — {t.since} · </span>
 										<button
 											type="button"
+											onClick={() => handleRevoke(t)}
 											className="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso"
 										>
 											revoke

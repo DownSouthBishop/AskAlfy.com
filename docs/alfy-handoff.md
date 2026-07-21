@@ -44,7 +44,7 @@ cp .env.local.example .env.local     # fill PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE
 **2 — Schema** → turns `supabase link` + `migrations` green
 ```bash
 supabase link --project-ref <ref>
-supabase db push                     # applies 0001 … 0004
+supabase db push                     # applies 0001 … 0005
 ```
 
 > **Run this against a throwaway project first.** None of the SQL has ever executed. The one

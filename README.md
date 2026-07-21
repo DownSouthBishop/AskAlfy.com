@@ -88,6 +88,40 @@ the queue is data, and that's the last gate before something actually leaves.
 > **Run it if you touch the verb lists.** It already caught one real miss:
 > `SLACK_SENDS_A_MESSAGE…` uses a plural verb the first draft didn't match.
 
+### Earned autonomy — Alfy asks to stop asking
+
+A constant approval tax is how an assistant stops being worth it. If you've said yes to the
+last four replies to Dana, a fifth prompt isn't caution, it's friction.
+
+So Alfy watches, and when a pattern is unambiguous it **asks — once** — whether to handle
+those itself:
+
+> Done — Send email — dana@northbridge.com · Re: Thursday. — A
+>
+> That's the third one of these you've okayed. Want me to just send email to
+> dana@northbridge.com from now on? Reply YES and I'll stop asking.
+
+"Alfy asks first" is intact. It asks about the *pattern* instead of the instance, and the
+friction falls as trust is earned rather than staying flat forever.
+
+Four things keep it safe:
+
+- **Scope is tool + target**, never tool alone (`scopeKey()`). "Always send replies to Dana"
+  is a comfortable grant; "always send email" is not. The target is the same first field the
+  card shows, so the permission covers exactly what you were looking at each time you agreed.
+- **Evidence, not vibes.** Three approvals of that exact scope with **zero** skips. One skip
+  means it isn't a pattern and Alfy keeps asking. Counted from `approval_queue` by
+  `autonomy_candidate()`, so it can't drift.
+- **Some things never graduate.** Deletes, payments, purchases, transfers, cancellations —
+  see `canEarnAutonomy()`. A misfiring habit that emails the wrong person is recoverable; one
+  that moves money isn't.
+- **The grant is deterministic, not model-judged.** `alfy-sms-inbound` matches the reply
+  against a literal affirmative set *before* the agent sees it. Consent for standing send
+  authority doesn't route through a model's reading of the word "yes".
+
+Autonomous actions still appear in **Handled**, attributed to the standing okay rather than
+to a tap that never happened — autonomy isn't silence. Revoke any of them in **Alfy knows**.
+
 ### The card shows the action, not a description of it
 
 `summary`, the draft, and the card's fields are all derived from the tool slug and payload
@@ -161,7 +195,7 @@ supabase/
     alfy-connect      starts a Composio OAuth connect
     alfy-link         one-time SMS token → dashboard session
     alfy-agent        the loop on its own, for testing
-  migrations/       0001 core + RLS · 0002 approval hardening · 0003 daily brief
+  migrations/       0001 core+RLS · 0002 approval · 0003 brief · 0004 integrity · 0005 autonomy
 scripts/            doctor, check-actions
 docs/               alfy-handoff.md — the setup checklist
 ```
@@ -181,10 +215,6 @@ Written down so they read as decisions, not oversights.
   shipped behaviour is search-and-hand-off: Alfy finds it and gives you the link. That's also
   the right posture for irreversible money — the `undo_until` window means nothing against a
   nonrefundable fare.
-- **`standing_permissions` has no creation path.** The dashboard renders and revokes them and
-  the agent sees them, but nothing writes a row and no code bypasses the approval queue on
-  their behalf. Building that bypass means putting a hole through the one rule the product is
-  named for — worth doing deliberately, not as cleanup.
 - **`users.quiet_hours_*` is unused.** It would gate proactive sends; the brief is the only
   proactive path and it fires at a time the person chose. Reserved.
 - **The agent runs inline in the webhook.** Fine at this scale. The seam for an enqueue +

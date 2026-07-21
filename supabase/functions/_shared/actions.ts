@@ -118,6 +118,35 @@ export function actionSummary(slug: string, payload: Record<string, unknown>): s
 	return detail ? `${phrase} — ${clip(detail, 120)}` : phrase;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Earned autonomy — see 0005_earned_autonomy.sql.
+//
+// A standing permission is keyed on the tool AND what it targets, because scope is the
+// whole safety story. "Always send emails" is a frightening thing to grant; "always send
+// replies to Dana" is a comfortable one. The target is the first field the card shows —
+// recipient, channel, spreadsheet — so the permission covers exactly what the person has
+// been looking at each time they said yes.
+//
+// Null means "not eligible": no identifiable target, so no scope narrow enough to trust.
+// ─────────────────────────────────────────────────────────────────────────────
+export function scopeKey(slug: string, payload: Record<string, unknown>): string | null {
+	const target = actionFields(payload)[0]?.value;
+	if (!target) return null;
+	return `${slug.toUpperCase()}:${target.toLowerCase()}`;
+}
+
+// Some things never graduate, however many times you approve them. Routine sends can earn
+// autonomy; irreversible and financial ones don't get to. A misfiring habit that emails the
+// wrong person is recoverable — one that deletes a drive or moves money is not.
+const NEVER_AUTOMATE = new Set([
+	'DELETE', 'REMOVE', 'PAY', 'BUY', 'ORDER', 'REFUND', 'TRANSFER',
+	'REVOKE', 'GRANT', 'ARCHIVE', 'CLEAR', 'MERGE', 'CANCEL',
+]);
+
+export function canEarnAutonomy(slug: string): boolean {
+	return !slug.toUpperCase().split('_').some((t) => NEVER_AUTOMATE.has(t));
+}
+
 // The longer preview, when the payload carries something the person should actually read.
 export function actionDraft(payload: Record<string, unknown>): string | null {
 	for (const key of ['body', 'text', 'message', 'content', 'description']) {

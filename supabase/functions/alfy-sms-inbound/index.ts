@@ -16,6 +16,13 @@ const APP_URL = optionalEnv('PUBLIC_APP_URL', 'https://askalfy.com');
 
 const PG_UNIQUE_VIOLATION = '23505';
 
+// Answering Alfy's "want me to stop asking about these?" question. Kept narrow and literal
+// on purpose — this grants a standing permission to act without approval, so it should take
+// a clear yes and nothing looser.
+const AFFIRMATIVE = new Set(['YES', 'Y', 'YEP', 'YEAH', 'OK', 'OKAY', 'SURE', 'DO IT', 'PLEASE DO']);
+const NEGATIVE = new Set(['NO', 'N', 'NOPE', 'NAH', "DON'T", 'DONT', 'NO THANKS']);
+const OFFER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 function randomToken() {
 	return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
 }
@@ -115,6 +122,37 @@ Deno.serve(async (req) => {
 
 	// They said STOP. Staying silent is the whole point — do not reply, do not run anything.
 	if (phone.consent === 'opted_out') return new Response(null, { status: 204 });
+
+	// Answering Alfy's autonomy question. Handled here, deterministically, BEFORE the agent
+	// sees the message: granting a standing permission to send without asking is not a
+	// decision to route through a model's reading of the word "yes".
+	const answer = AFFIRMATIVE.has(kw) ? 'grant' : NEGATIVE.has(kw) ? 'decline' : null;
+	if (answer) {
+		const { data: offer } = await supa
+			.from('standing_permissions')
+			.select('id, description')
+			.eq('user_id', phone.user_id)
+			.is('granted_at', null)
+			.is('declined_at', null)
+			.is('revoked_at', null)
+			.gte('offered_at', new Date(Date.now() - OFFER_WINDOW_MS).toISOString())
+			.order('offered_at', { ascending: false })
+			.limit(1)
+			.maybeSingle();
+
+		if (offer) {
+			const now = new Date().toISOString();
+			await supa.from('standing_permissions')
+				.update(answer === 'grant' ? { granted_at: now } : { declined_at: now })
+				.eq('id', offer.id);
+
+			await reply(supa, phone.user_id as string, from, answer === 'grant'
+				? `Done. I'll handle those from now on without asking. You can turn it off any time in Alfy knows. — A`
+				: `Understood — I'll keep asking. — A`);
+			return new Response(null, { status: 200 });
+		}
+		// No open question: fall through and let the agent read it as an ordinary message.
+	}
 
 	// Dedupe on the twilio_sid unique index. Only a uniqueness collision means "already
 	// processed" — any other insert failure is a real error and must not silently drop

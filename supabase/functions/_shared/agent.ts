@@ -15,7 +15,7 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js';
 import { requireEnv } from './env.ts';
-import { actionDraft, actionSummary, kindOf } from './actions.ts';
+import { actionDraft, actionSummary, kindOf, scopeKey } from './actions.ts';
 import {
 	composioCreateSession,
 	composioExecuteInSession,
@@ -52,6 +52,9 @@ RULES — never break these:
 2. Anything that WRITES — sends, posts, books, buys, changes, deletes — does not happen when
    you call it. It becomes a request waiting for their yes, and they get a link. Say so:
    "it's waiting for your yes", never "I sent it".
+   The one exception: if use_tool comes back {sent:true, standing_okay:true}, they have
+   already told you to stop asking about that exact thing, so it really did go. Say it's
+   done, and mention it was one of their standing okays.
 3. Draft in the person's voice using their context. If you lack something you need, ask.
 4. Be specific about what you found and what's waiting.`;
 
@@ -98,6 +101,21 @@ interface TurnState {
 	read: number;
 }
 
+// Has the person already told Alfy to stop asking about exactly this? A permission is
+// scoped to tool + target, granted, and not revoked — nothing here infers one.
+async function standingOkay(supa: Supa, userId: string, scope: string | null): Promise<boolean> {
+	if (!scope) return false;
+	const { data } = await supa
+		.from('standing_permissions')
+		.select('id')
+		.eq('user_id', userId)
+		.eq('scope_key', scope)
+		.not('granted_at', 'is', null)
+		.is('revoked_at', null)
+		.maybeSingle();
+	return Boolean(data);
+}
+
 async function queueForApproval(
 	supa: Supa,
 	userId: string,
@@ -112,6 +130,7 @@ async function queueForApproval(
 		draft_content: actionDraft(payload),
 		action_type: slug,
 		action_payload: payload,
+		scope_key: scopeKey(slug, payload),
 		status: 'pending',
 	}).select('id').single();
 	if (error) throw new Error(error.message);
@@ -120,6 +139,42 @@ async function queueForApproval(
 		queued: true,
 		note: 'Waiting for their yes. It has not happened yet — tell them it is waiting, not that it is done.',
 	};
+}
+
+// Logged as already-decided so it still appears in Handled, attributed to the standing okay
+// rather than to a tap that never happened. An action Alfy takes on its own still has to be
+// visible; autonomy is not the same as silence.
+async function recordAutonomous(
+	supa: Supa,
+	userId: string,
+	slug: string,
+	payload: Record<string, unknown>,
+	scope: string,
+) {
+	const now = new Date().toISOString();
+	const { data: perm } = await supa
+		.from('standing_permissions')
+		.select('id')
+		.eq('user_id', userId)
+		.eq('scope_key', scope)
+		.not('granted_at', 'is', null)
+		.is('revoked_at', null)
+		.maybeSingle();
+
+	await supa.from('approval_queue').insert({
+		user_id: userId,
+		kind: kindOf(slug),
+		summary: actionSummary(slug, payload),
+		draft_content: actionDraft(payload),
+		action_type: slug,
+		action_payload: payload,
+		scope_key: scope,
+		standing_permission_id: perm?.id ?? null,
+		status: 'executed',
+		decided_at: now,
+		executed_at: now,
+		undo_until: new Date(Date.now() + 10 * 60_000).toISOString(),
+	});
 }
 
 async function session(supa: Supa, userId: string, turn: TurnState): Promise<ToolSession> {
@@ -166,7 +221,19 @@ async function handleTool(
 			if (!slug) throw new Error('use_tool needs a tool name from find_tools');
 
 			// THE approval boundary. Unrecognised verbs count as writes — see isReadOnly.
-			if (!isReadOnly(slug)) return await queueForApproval(supa, userId, slug, args, turn);
+			if (!isReadOnly(slug)) {
+				// ...unless the person has already said "stop asking about this one". That
+				// permission is scoped to this tool and this target, was offered by Alfy and
+				// granted deliberately, and is revocable from the dashboard.
+				const scope = scopeKey(slug, args);
+				if (await standingOkay(supa, userId, scope)) {
+					const s = await session(supa, userId, turn);
+					const result = await composioExecuteInSession(s.sessionId, slug, args);
+					await recordAutonomous(supa, userId, slug, args, scope!);
+					return { sent: true, standing_okay: true, result };
+				}
+				return await queueForApproval(supa, userId, slug, args, turn);
+			}
 
 			const s = await session(supa, userId, turn);
 			return await composioExecuteInSession(s.sessionId, slug, args);

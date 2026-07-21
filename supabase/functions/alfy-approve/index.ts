@@ -3,8 +3,9 @@
 // on a row the CALLER owns. Reads action_payload the agent stashed, replays it through
 // Composio, texts a confirmation.
 
-import { createClient } from 'npm:@supabase/supabase-js';
-import { composioExecute, isReadOnly } from '../_shared/composio.ts';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js';
+import { composioExecute } from '../_shared/composio.ts';
+import { actionPhrase, canEarnAutonomy, isReadOnly } from '../_shared/actions.ts';
 import { requireEnv } from '../_shared/env.ts';
 import { CORS, JSON_CORS } from '../_shared/cors.ts';
 import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
@@ -12,6 +13,48 @@ import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_ANON_KEY = requireEnv('SUPABASE_ANON_KEY');
 const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Earned autonomy. After an action fires, look at whether this exact thing — same tool,
+// same target — has been approved enough times with no refusals to be worth asking about.
+//
+// Alfy asks; it never assumes. The row goes in with granted_at null, which is an open
+// question, not a permission. alfy-sms-inbound turns a "yes" into the grant.
+//
+// Returns text to append to the confirmation, or '' when there's nothing to ask.
+// ─────────────────────────────────────────────────────────────────────────────
+async function maybeOfferAutonomy(
+	// SupabaseClient, not ReturnType<typeof createClient> — the latter resolves the schema
+	// to `never` and every .insert() stops compiling.
+	supa: SupabaseClient,
+	row: { user_id: unknown; action_type: unknown; scope_key: unknown },
+): Promise<string> {
+	const slug = String(row.action_type ?? '');
+	const scope = row.scope_key ? String(row.scope_key) : null;
+	if (!scope || !canEarnAutonomy(slug)) return '';
+
+	const { data: ready } = await supa.rpc('autonomy_candidate', {
+		p_user_id: row.user_id,
+		p_scope_key: scope,
+	});
+	if (!ready) return '';
+
+	const target = scope.slice(scope.indexOf(':') + 1);
+	const description = `${actionPhrase(slug).toLowerCase()} to ${target}`;
+
+	// The partial unique index makes this a no-op if a question is already open or the
+	// person has already answered it — so Alfy can't ask twice.
+	const { error } = await supa.from('standing_permissions').insert({
+		user_id: row.user_id,
+		scope_key: scope,
+		action_type: slug,
+		description: `Can ${description} without asking`,
+		offered_at: new Date().toISOString(),
+	});
+	if (error) return ''; // already asked, or already answered
+
+	return `\n\nThat's the third one of these you've okayed. Want me to just ${description} from now on? Reply YES and I'll stop asking. You can undo it any time.`;
+}
 
 Deno.serve(async (req) => {
 	if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
@@ -41,7 +84,7 @@ Deno.serve(async (req) => {
 		.eq('id', approval_id)
 		.eq('user_id', acct.id)
 		.eq('status', 'approved')
-		.select('id, user_id, action_type, action_payload, summary')
+		.select('id, user_id, action_type, action_payload, summary, scope_key')
 		.maybeSingle();
 
 	if (!claimed) return new Response(JSON.stringify({ error: 'not approvable' }), { status: 409, headers: JSON_CORS });
@@ -77,7 +120,7 @@ Deno.serve(async (req) => {
 		.maybeSingle();
 
 	if (phone) {
-		const body = `Done — ${claimed.summary}. — A`;
+		const body = `Done — ${claimed.summary}. — A${await maybeOfferAutonomy(supa, claimed)}`;
 		const segments = await sendSms(phone.phone_e164 as string, body);
 		await supa.from('messages').insert({
 			user_id: claimed.user_id, from_phone: TWILIO_FROM, direction: 'outbound', body, segments: segments || 1,

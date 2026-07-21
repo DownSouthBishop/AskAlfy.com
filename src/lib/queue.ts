@@ -26,7 +26,45 @@ export interface HandledItem {
 	standing: boolean; // true = a standing okay, false = you approved it
 }
 
+// A standing okay Alfy asked for and the person granted. Revoking is the whole reason this
+// is on screen — the offer text promises they can undo it, so the button has to work.
+export interface TrustItem {
+	id: string | number;
+	line: string;
+	since: string;
+}
+
 export type Range = 'week' | 'lastweek' | 'all';
+
+export const DEMO_TRUST: TrustItem[] = [
+	{ id: 'd1', line: 'Send email to dana@northbridge.com without asking', since: 'you granted this Jan 12' },
+	{ id: 'd2', line: 'Send a message to #team without asking', since: 'you granted this Feb 3' },
+];
+
+// Granted and not revoked. An offered-but-unanswered row is an open question, not a
+// permission, and must never render here as though it were in force.
+export async function loadTrust(): Promise<TrustItem[]> {
+	if (!supabase) return DEMO_TRUST;
+	const { data } = await supabase
+		.from('standing_permissions')
+		.select('id, description, granted_at')
+		.not('granted_at', 'is', null)
+		.is('revoked_at', null)
+		.order('granted_at', { ascending: false });
+	return (data ?? []).map((r) => ({
+		id: r.id,
+		line: r.description,
+		since: `you granted this ${new Date(r.granted_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
+	}));
+}
+
+export async function revokeTrust(id: string | number): Promise<void> {
+	if (!supabase) return;
+	await supabase
+		.from('standing_permissions')
+		.update({ revoked_at: new Date().toISOString() })
+		.eq('id', id);
+}
 
 // Demo rows carry real payloads and run through the same actionFields() the live cards do,
 // so the demo shows the product rather than a prettier version of it.
