@@ -24,13 +24,13 @@ Do these in order — later steps need ids from earlier ones.
 | 3 | **Composio** — one auth config for Gmail, one for Calendar | API key + two `ac_…` auth-config ids |
 | 4 | **Twilio** — buy a number, register A2P 10DLC | account SID, auth token, the number (E.164) |
 
-> **Composio: managed or custom auth config?** Both work here — `alfy-connect` reads the
-> id from `COMPOSIO_AUTHCFG_*`, so switching is a secrets change, not a code change.
-> The difference is who owns the Google OAuth app. **Custom** = Alfy owns it, which means
-> Alfy owns Google's CASA security assessment for the restricted Gmail scopes
-> (`gmail.send`, `gmail.modify`) — annual, real money, months of lead time. **Managed** =
-> Composio owns both. Pick before you create the config; it's the longest-lead item in
-> this document by an order of magnitude.
+> **Use Composio-MANAGED auth configs.** Composio owns the OAuth apps, so Alfy doesn't need
+> a Google Cloud OAuth client and doesn't carry Google's CASA assessment for the restricted
+> Gmail scopes. That's the decision — don't create custom configs.
+>
+> It's also the point of the product: Alfy works with whatever you've connected, so Composio
+> holding the credentials for every toolkit is what makes a new app work without Alfy
+> integrating it. Owning the OAuth apps would mean owning verification for each one.
 
 ---
 

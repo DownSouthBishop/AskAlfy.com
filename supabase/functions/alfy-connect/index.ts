@@ -1,10 +1,10 @@
 // alfy-connect — starts a Composio connection for Gmail/Calendar and returns the redirect URL.
 // Called from Settings → Connections with the user's JWT.
 //
-// The auth-config ids come from secrets, so managed vs. custom auth is a secrets change,
-// not a code change: point COMPOSIO_AUTHCFG_* at whichever config you created in the
-// Composio dashboard. (Custom = Alfy owns the OAuth app and the Google verification
-// burden that comes with restricted Gmail scopes; managed = Composio owns both.)
+// These are Composio-MANAGED auth configs — Composio owns the OAuth apps, so Alfy holds no
+// Google client and carries no CASA assessment. That's what lets a newly connected toolkit
+// work without Alfy integrating it. Point COMPOSIO_AUTHCFG_* at the managed configs you
+// created in the Composio dashboard.
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { composioConnectLink } from '../_shared/composio.ts';
