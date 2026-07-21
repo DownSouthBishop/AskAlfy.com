@@ -33,8 +33,9 @@ supabase link --project-ref kpybomnunyhazkenyoeb
 # set the backend secrets (names listed in .env.local.example):
 supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
   ANTHROPIC_API_KEY=... GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... \
-  TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=...
-supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect
+  TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=... \
+  INTERNAL_FUNCTION_SECRET=...   # must match the secret baked into the live cron.schedule() call, see docs/alfy-handoff.md
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner
 ```
 Then:
 - **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).

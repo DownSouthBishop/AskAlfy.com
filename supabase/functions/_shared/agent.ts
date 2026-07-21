@@ -461,6 +461,28 @@ const TOOLS: Anthropic.Tool[] = [
 		},
 	},
 	{
+		name: 'create_standing_instruction',
+		description: 'Set up an ongoing check Alfy runs on a schedule (e.g. "never let me miss a birthday", "tell me if a bill looks overdue"). Not an outbound action — just sets up future automated checking. Store the goal verbatim, no special-casing by type.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				goal_text: { type: 'string' },
+				cadence: { type: 'string', enum: ['hourly', 'daily', 'weekly'], default: 'daily' },
+			},
+			required: ['goal_text'],
+		},
+	},
+	{
+		name: 'list_standing_instructions',
+		description: "List the person's active standing instructions (read-only).",
+		input_schema: { type: 'object', properties: {} },
+	},
+	{
+		name: 'cancel_standing_instruction',
+		description: 'Cancel a standing instruction the person no longer wants.',
+		input_schema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+	},
+	{
 		name: 'queue_action',
 		description: "Queue an outbound action with no dedicated tool yet, for the person to approve. Nothing happens until they say yes.",
 		input_schema: {
@@ -840,6 +862,35 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 					mode: input.mode ?? 'overwrite',
 				},
 			});
+		case 'create_standing_instruction': {
+			const cadence = (input.cadence as string | undefined) ?? 'daily';
+			const { data, error } = await supa.from('standing_instructions').insert({
+				user_id: userId,
+				goal_text: input.goal_text,
+				trigger_type: 'cron',
+				trigger_config: { cadence },
+				status: 'active',
+			}).select('id').single();
+			if (error) throw new Error(error.message);
+			return { created: true, id: data?.id };
+		}
+		case 'list_standing_instructions': {
+			const { data, error } = await supa.from('standing_instructions')
+				.select('id, goal_text, trigger_config, status, last_run_at, last_result')
+				.eq('user_id', userId)
+				.in('status', ['active', 'paused'])
+				.order('created_at', { ascending: false });
+			if (error) throw new Error(error.message);
+			return data ?? [];
+		}
+		case 'cancel_standing_instruction': {
+			const { error } = await supa.from('standing_instructions')
+				.update({ status: 'cancelled' })
+				.eq('id', input.id)
+				.eq('user_id', userId);
+			if (error) throw new Error(error.message);
+			return { cancelled: true };
+		}
 		case 'queue_action':
 			return await queue(supa, userId, {
 				kind: input.kind as string,

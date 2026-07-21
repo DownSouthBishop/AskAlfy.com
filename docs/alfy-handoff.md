@@ -62,7 +62,7 @@ via that synthetic email. Both resolve to the same account.
    applied to it.
 2. **Set function secrets** (see `.env.local.example` list) via `supabase secrets set` —
    `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are new; `COMPOSIO_*` are no longer needed.
-3. **Deploy functions:** `supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect`.
+3. **Deploy functions:** `supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner`.
 4. **Google Cloud OAuth client:** create a Web application OAuth client, register redirect
    URI `${PUBLIC_APP_URL}/auth/google-callback`, put the client ID (also hardcode in
    `src/lib/config.ts`'s `GOOGLE_CLIENT_ID`) and secret in Supabase function secrets.
@@ -90,6 +90,9 @@ actions specifically, connect Google first from Settings → Connections.
 - [ ] **Twilio signature** verification in `alfy-sms-inbound` (now implemented — verify
       against a live Twilio webhook, not just unit logic).
 - [ ] **Twilio send** (Messages API basic-auth) — confirm creds/format.
+- [ ] **`alfy-automation-runner`** — the cron job (hourly, `:05`) is already registered live;
+      it currently has nothing to authenticate with until `INTERNAL_FUNCTION_SECRET` is set as
+      an edge-function secret to match the value baked into the live `cron.schedule(...)` call.
 
 (Session mint in `alfy-link` is resolved — documented `generateLink` + `verifyOtp` pattern.
 Composio's connect/tool-execute calls are no longer part of this path — see the Phase 1
@@ -115,9 +118,49 @@ requiring six separate OAuth round-trips. `drive.file` scope means Alfy can only
 created or the person explicitly opened with it, not the whole Drive (see gotcha in
 `docs/prymal-port-reference.md` §1) — full Drive access needs a Google security review.
 
-**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):**
-standing-instruction tools + automation runner, Stripe billing/plan tiers. Slides/Forms/Keep
-were judged niche and skipped per the reference doc's own call.
+**Phase 4 update:** standing instructions are now wired end to end. Three new agent tools —
+`create_standing_instruction`, `list_standing_instructions`, `cancel_standing_instruction` —
+let a person set up an ongoing check ("never let me miss a birthday") that isn't an outbound
+action, just a row in `standing_instructions` (schema was already in place from Phase 1). A
+new edge function, `alfy-automation-runner`, is `pg_cron`-triggered hourly: it selects
+`status = 'active'` instructions whose cadence (`hourly`/`daily`/`weekly`, stored in
+`trigger_config`) means they're due, and re-invokes `runAgent` headlessly with a synthetic
+"automation mode" prompt telling the model no human is present so it shouldn't ask a
+question — just look, decide, and act (or reply `NO_ACTION`). External actions triggered this
+way still go through the normal `approval_queue`/`alfy-approve` flow — nothing about the
+"nothing leaves without a yes" invariant changes for scheduled runs. Auth for the runner is a
+shared secret (`x-runner-key` header / `INTERNAL_FUNCTION_SECRET`), not a user JWT, since
+there's no human session for a cron-triggered call; the function is deployed with
+`verify_jwt: false` and checks the header itself. AskAlfy's agent has no self-approve tool at
+all (unlike PrymalAI's `resolve_pending_action`), so there's no tool to strip for
+prompt-injection safety on unattended runs — the guard is architectural, not per-invocation.
+
+**Reproducing the cron registration on a fresh project:** `0005_automation_cron.sql` only
+enables the `pg_cron`/`pg_net` extensions (secret-free, safe to commit). The actual
+`cron.schedule(...)` call has to embed the shared secret as a literal in the SQL body (that's
+how `pg_net` passes headers), so it was applied once, live, directly against the project —
+never committed. To reproduce:
+
+```sql
+select cron.schedule(
+  'alfy-automation-runner-hourly',
+  '5 * * * *',
+  $$
+  select net.http_post(
+    url := 'https://kpybomnunyhazkenyoeb.supabase.co/functions/v1/alfy-automation-runner',
+    headers := jsonb_build_object('x-runner-key', '<same value as INTERNAL_FUNCTION_SECRET>'),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+Generate a new random string for `<same value as INTERNAL_FUNCTION_SECRET>`, run this live via
+the SQL editor (or `execute_sql`), and set the identical value as the `INTERNAL_FUNCTION_SECRET`
+edge-function secret.
+
+**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):** Stripe billing/
+plan tiers. Slides/Forms/Keep were judged niche and skipped per the reference doc's own call.
 
 ---
 
