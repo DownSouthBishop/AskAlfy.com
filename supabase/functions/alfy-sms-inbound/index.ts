@@ -4,6 +4,14 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { runAgent } from '../_shared/agent.ts';
+import {
+	checkAccess,
+	getOrCreateStripeCustomer,
+	paywallCopy,
+	recordTrialAction,
+	STRIPE_PRICE_ALFY,
+	stripeCreateCheckoutSession,
+} from '../_shared/billing.ts';
 import { sendSms, TWILIO_FROM_NUMBER, validateTwilioSignature } from '../_shared/twilio.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -72,8 +80,27 @@ Deno.serve(async (req) => {
 	const { error: dupe } = await supa.from('messages').insert({ user_id: phone.user_id, from_phone: from, direction: 'inbound', body, twilio_sid: sid });
 	if (dupe) return new Response(null, { status: 200 }); // already processed
 
+	// Billing gate — trial cap hit, trial expired, or no active subscription. Nothing runs;
+	// send the one paywall text with a Stripe Checkout link instead of touching a tool.
+	const access = await checkAccess(supa, phone.user_id);
+	if (!access.allowed) {
+		const { data: acct } = await supa.from('users').select('stripe_customer_id, recovery_email').eq('id', phone.user_id).single();
+		const customerId = await getOrCreateStripeCustomer(supa, phone.user_id, acct?.recovery_email ?? syntheticEmail(from), acct?.stripe_customer_id);
+		const checkoutUrl = await stripeCreateCheckoutSession({
+			customerId,
+			priceId: STRIPE_PRICE_ALFY,
+			successUrl: `${APP_URL}/app?upgraded=1`,
+			cancelUrl: `${APP_URL}/app`,
+		});
+		const text = `${paywallCopy(access.reason)}\n${checkoutUrl}`;
+		await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: text });
+		await sendSms(from, text);
+		return new Response(null, { status: 200 });
+	}
+
 	// Run the agent (inline now; enqueue at scale).
 	const reply = await runAgent(phone.user_id, body);
+	if (access.plan === 'trial') await recordTrialAction(supa, phone.user_id);
 
 	// If the turn queued anything, mint a one-time approval link and append it.
 	const { data: pending } = await supa

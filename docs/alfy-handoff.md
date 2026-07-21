@@ -62,7 +62,7 @@ via that synthetic email. Both resolve to the same account.
    applied to it.
 2. **Set function secrets** (see `.env.local.example` list) via `supabase secrets set` —
    `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are new; `COMPOSIO_*` are no longer needed.
-3. **Deploy functions:** `supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner`.
+3. **Deploy functions:** `supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner alfy-stripe-checkout alfy-stripe-webhook`.
 4. **Google Cloud OAuth client:** create a Web application OAuth client, register redirect
    URI `${PUBLIC_APP_URL}/auth/google-callback`, put the client ID (also hardcode in
    `src/lib/config.ts`'s `GOOGLE_CLIENT_ID`) and secret in Supabase function secrets.
@@ -93,6 +93,12 @@ actions specifically, connect Google first from Settings → Connections.
 - [ ] **`alfy-automation-runner`** — the cron job (hourly, `:05`) is already registered live;
       it currently has nothing to authenticate with until `INTERNAL_FUNCTION_SECRET` is set as
       an edge-function secret to match the value baked into the live `cron.schedule(...)` call.
+- [ ] **Stripe** — create the Stripe account, two Products (Alfy / Alfy Plus) with recurring
+      Prices, set `STRIPE_SECRET_KEY`/`STRIPE_PRICE_ALFY`/`STRIPE_PRICE_ALFY_PLUS`, register a
+      webhook endpoint pointed at `alfy-stripe-webhook`'s URL listening for
+      `checkout.session.completed`, `customer.subscription.created/updated/deleted`, copy its
+      signing secret into `STRIPE_WEBHOOK_SECRET`. None of `alfy-stripe-checkout`/
+      `alfy-stripe-webhook`'s live calls have hit a real Stripe account yet.
 
 (Session mint in `alfy-link` is resolved — documented `generateLink` + `verifyOtp` pattern.
 Composio's connect/tool-execute calls are no longer part of this path — see the Phase 1
@@ -159,8 +165,47 @@ Generate a new random string for `<same value as INTERNAL_FUNCTION_SECRET>`, run
 the SQL editor (or `execute_sql`), and set the identical value as the `INTERNAL_FUNCTION_SECRET`
 edge-function secret.
 
-**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):** Stripe billing/
-plan tiers. Slides/Forms/Keep were judged niche and skipped per the reference doc's own call.
+**Phase 5 update:** billing is wired end to end. Tier shape follows pally.com (an SMS/
+iMessage-first assistant, the closest real analog to Alfy) rather than PrymalAI's — Pally
+gates by usage ceiling (Free / Pro $25 / Max $200), not by which Google service you've
+unlocked, so every Alfy plan gets every tool and there's no feature matrix to decode before
+texting Alfy. Structure: a 7-day trial (75 total actions hard cap, 20/day soft cap — ported
+as-is from PrymalAI's proven mechanic), then **Alfy** ($25/mo, `STRIPE_PRICE_ALFY`) or
+**Alfy Plus** ($75/mo, `STRIPE_PRICE_ALFY_PLUS`) for heavier users — Plus is a usage-ceiling
+upsell only, not a feature unlock. Prices are placeholders in `_shared/billing.ts` /
+`AlfyDashboard.tsx`'s `PLAN_LABEL` — change them in one place once real pricing is decided.
+
+New `users` columns (`0006_billing.sql`): `plan`, `trial_started_at`, `trial_ends_at`,
+`trial_actions_used`, `trial_daily_actions`, `trial_daily_reset_date`, `stripe_customer_id`,
+`stripe_subscription_id`, plus an `increment_trial_action` RPC.
+
+`_shared/billing.ts` is the single gate: `checkAccess(supa, userId)` runs before every agent
+turn (both `alfy-sms-inbound` and `alfy-automation-runner` call it) and returns
+allowed/blocked with a reason. A blocked SMS turn never touches a tool — it gets one paywall
+text (Alfy's voice, `paywallCopy`) with a Stripe Checkout link instead. A blocked standing
+instruction is skipped silently by the cron runner (no SMS from a background job) and picks
+back up on the very next hourly tick once the person resubscribes, rather than waiting out
+the full cadence window. Trial users get `recordTrialAction` called after every turn that
+actually ran — standing instructions on trial count against the same caps as texted turns,
+so an hourly cadence can't become an unmetered way around them.
+
+Two new edge functions, both hand-rolled REST (no Stripe SDK, matching the rest of the
+codebase's Twilio/Google pattern):
+- **`alfy-stripe-checkout`** — JWT-authenticated, called from the dashboard's Billing row.
+  Mints a Checkout Session if the account has no subscription yet, or a Billing Portal
+  session (Stripe's own hosted manage/cancel/upgrade page) if it already does — one button,
+  server decides which.
+- **`alfy-stripe-webhook`** — `verify_jwt: false`, authenticates via the `Stripe-Signature`
+  header instead (HMAC-SHA256, same shape as Twilio's signature check, different algorithm).
+  `customer.subscription.*` is the single source of truth for `users.plan`.
+
+Dashboard: Settings → Billing (already had a placeholder row) now shows real state — trial
+countdown in plain days-left language (no raw action-count exposed, matching Pally's
+"generous allowances" framing over a scary counter), or the current plan name, with a
+marigold "Upgrade"/"Reactivate" button or a plain "Manage" link depending on state.
+
+**Not built yet:** nothing from the reference doc's roadmap remains. Slides/Forms/Keep were
+judged niche and skipped per the reference doc's own call.
 
 ---
 

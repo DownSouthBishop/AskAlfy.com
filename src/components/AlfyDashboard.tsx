@@ -12,12 +12,15 @@ import {
 	approveItem,
 	skipItem,
 	connectGoogle,
+	loadBilling,
+	startCheckout,
 	breakdown,
 	type QueueItem,
 	type HandledItem,
 	type PersonItem,
 	type TrustItem,
 	type Range,
+	type BillingStatus,
 } from '../lib/queue';
 
 // Reads Supabase when configured (src/lib/supabase.ts); otherwise renders demo data.
@@ -32,6 +35,18 @@ const WATCHING = [
 const reduceMotion =
 	typeof window !== 'undefined' &&
 	window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function trialDaysLeft(trialEndsAt: string): number {
+	return Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000));
+}
+
+const PLAN_LABEL: Record<BillingStatus['plan'], string> = {
+	trial: 'Free trial',
+	active: 'Alfy — $25/mo',
+	plus: 'Alfy Plus — $75/mo',
+	past_due: 'Your plan needs attention',
+	canceled: 'Your plan ended',
+};
 
 const tabClass = (active: boolean) =>
 	`cursor-pointer px-4 py-2.5 text-small font-medium -mb-px border-b-2 transition-colors ${
@@ -133,6 +148,7 @@ export default function AlfyDashboard() {
 	const [range, setRange] = useState<Range>('week');
 	const [people, setPeople] = useState<PersonItem[]>(DEMO_PEOPLE);
 	const [trust, setTrust] = useState<TrustItem[]>(DEMO_TRUST);
+	const [billing, setBilling] = useState<BillingStatus | null>(null);
 
 	// Hydrate from Supabase when it's configured; demo data shows until then.
 	useEffect(() => {
@@ -144,6 +160,9 @@ export default function AlfyDashboard() {
 	useEffect(() => {
 		loadPeople().then(setPeople);
 		loadTrust().then(setTrust);
+	}, []);
+	useEffect(() => {
+		loadBilling().then(setBilling);
 	}, []);
 
 	function handleRevokeTrust(id: string | number) {
@@ -431,8 +450,37 @@ export default function AlfyDashboard() {
 								</button>
 							</li>
 							<li className="flex items-center justify-between py-3">
-								<span className="text-espresso">Billing</span>
-								<span className="text-small text-secondary">manage</span>
+								<div>
+									<span className="text-espresso">Billing</span>
+									{billing && (
+										<p className="text-small text-muted">
+											{billing.plan === 'trial' && billing.trialEndsAt
+												? `${trialDaysLeft(billing.trialEndsAt)} day${trialDaysLeft(billing.trialEndsAt) === 1 ? '' : 's'} left in your free trial`
+												: PLAN_LABEL[billing.plan]}
+										</p>
+									)}
+								</div>
+								{billing ? (
+									billing.plan === 'active' || billing.plan === 'plus' ? (
+										<button
+											type="button"
+											onClick={() => void startCheckout()}
+											className="cursor-pointer text-small font-medium text-secondary hover:text-espresso"
+										>
+											Manage
+										</button>
+									) : (
+										<button
+											type="button"
+											onClick={() => void startCheckout()}
+											className="min-h-9 cursor-pointer rounded-full bg-marigold px-4 text-small font-medium text-on-marigold transition-colors hover:bg-[#C97923]"
+										>
+											{billing.plan === 'past_due' || billing.plan === 'canceled' ? 'Reactivate' : 'Upgrade'}
+										</button>
+									)
+								) : (
+									<span className="text-small text-secondary">manage</span>
+								)}
 							</li>
 							<li className="flex items-center justify-between py-3">
 								<span className="text-espresso">Quiet hours</span>

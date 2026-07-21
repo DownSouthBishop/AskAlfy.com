@@ -1,15 +1,17 @@
 # 🚀 Finishing Alfy — START HERE
 
-> **You're the finishing engineer.** A Phase 1 backend port replaced Composio with a
-> hand-rolled Google OAuth + Gmail/Calendar REST backend (ported from PrymalAI-dashboard —
-> see `docs/prymal-port-reference.md` for the full spec and `docs/alfy-handoff.md` for the
-> exact VERIFY list). A fresh Supabase project (`askalfy`) is already provisioned and
-> migrated. What's left is a Google Cloud OAuth client, Twilio, Anthropic, and deploy.
+> **You're the finishing engineer.** A hand-rolled Google OAuth + Gmail/Calendar/Tasks/Drive/
+> Docs/Sheets REST backend, standing instructions + a cron automation runner, and Stripe
+> billing all replaced/extended AskAlfy's original Composio-only scaffold (ported from
+> PrymalAI-dashboard — see `docs/prymal-port-reference.md` for the full spec and
+> `docs/alfy-handoff.md` for the exact VERIFY list, phase by phase). A fresh Supabase project
+> (`askalfy`) is already provisioned and migrated. What's left is a Google Cloud OAuth
+> client, Twilio, Anthropic, Stripe, and deploy.
 
 ### What's already done (don't rebuild it)
 Marketing site, the 3-tab dashboard (Today / Handled / Alfy knows), phone-OTP login, the
-`/a` magic-link handler, the DB schema (`supabase/migrations/0001`-`0004_*.sql`, applied to
-the live `askalfy` Supabase project), and five edge functions (`supabase/functions/alfy-*`,
+`/a` magic-link handler, the DB schema (`supabase/migrations/0001`-`0006_*.sql`, applied to
+the live `askalfy` Supabase project), and nine edge functions (`supabase/functions/alfy-*`,
 sharing logic via `supabase/functions/_shared/`). It runs on demo data right now with zero
 setup.
 
@@ -25,6 +27,9 @@ npm run dev          # open the printed URL → /app shows the dashboard on demo
 3. **Google Cloud OAuth client** — a Web application client; register redirect URI
    `${PUBLIC_APP_URL}/auth/google-callback`. Replaces Composio for Gmail/Calendar.
 4. **Anthropic** — one API key.
+5. **Stripe** — an account, two Products with recurring Prices (Alfy / Alfy Plus), and a
+   webhook endpoint registered against `alfy-stripe-webhook`'s deployed URL. See
+   `docs/alfy-handoff.md`'s Phase 5 section for the exact events to listen for.
 
 ### Step 3 — Wire it up
 ```bash
@@ -34,8 +39,9 @@ supabase link --project-ref kpybomnunyhazkenyoeb
 supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
   ANTHROPIC_API_KEY=... GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... \
   TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=... \
-  INTERNAL_FUNCTION_SECRET=...   # must match the secret baked into the live cron.schedule() call, see docs/alfy-handoff.md
-supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner
+  INTERNAL_FUNCTION_SECRET=...   # must match the secret baked into the live cron.schedule() call, see docs/alfy-handoff.md \
+  STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... STRIPE_PRICE_ALFY=... STRIPE_PRICE_ALFY_PLUS=...
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner alfy-stripe-checkout alfy-stripe-webhook
 ```
 Then:
 - **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).

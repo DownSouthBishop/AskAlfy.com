@@ -12,6 +12,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { runAgent } from '../_shared/agent.ts';
+import { checkAccess, recordTrialAction } from '../_shared/billing.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -45,6 +46,15 @@ Deno.serve(async (req) => {
 	});
 
 	const results = await Promise.allSettled(due.map(async (inst) => {
+		// Billing gate applies to scheduled runs too — otherwise a standing instruction on an
+		// hourly cadence would be an unmetered way around the trial's action caps. A blocked
+		// user's instruction is left with last_run_at untouched (not "due" is recomputed fresh
+		// each tick) so it picks back up on the very next tick once they resubscribe, rather
+		// than waiting out the full cadence window. No paywall SMS from a cron job — that's
+		// only ever sent in response to something the person actually texted.
+		const access = await checkAccess(supa, inst.user_id);
+		if (!access.allowed) return { id: inst.id, acted: false, skipped: true };
+
 		const today = new Date().toISOString().slice(0, 10);
 		const message = `Scheduled check of a standing instruction. This is automation mode — no human is present, so don't ask a question; just look, decide, and act. Today is ${today}.\nThe person's ongoing goal: "${inst.goal_text}"\nLook at the current state with your tools and decide whether anything needs doing today to honor this goal. If yes, act — external actions still go through the approval queue, same as any other turn. If not, reply exactly NO_ACTION.`;
 
@@ -54,6 +64,7 @@ Deno.serve(async (req) => {
 		} catch (err) {
 			reply = `Error: ${(err as Error).message}`;
 		}
+		if (access.plan === 'trial') await recordTrialAction(supa, inst.user_id);
 
 		await supa.from('standing_instructions').update({
 			last_run_at: new Date().toISOString(),

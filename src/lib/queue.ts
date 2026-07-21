@@ -157,6 +157,29 @@ export interface Breakdown {
 	hoursSaved: number;
 }
 
+export interface BillingStatus {
+	plan: 'trial' | 'active' | 'plus' | 'past_due' | 'canceled';
+	trialEndsAt: string | null;
+}
+
+// null in demo mode (no Supabase configured) or if the row can't be read — callers fall
+// back to the same static "manage" placeholder the Settings panel always showed pre-Stripe.
+export async function loadBilling(): Promise<BillingStatus | null> {
+	if (!supabase) return null;
+	const { data } = await supabase.from('users').select('plan, trial_ends_at').single();
+	if (!data) return null;
+	return { plan: data.plan, trialEndsAt: data.trial_ends_at };
+}
+
+// One button, two jobs: alfy-stripe-checkout decides server-side whether this account needs
+// a Checkout Session (trial/past_due/canceled) or a Billing Portal session (already
+// active/plus) — the dashboard doesn't need to know which before redirecting.
+export async function startCheckout(plan: 'active' | 'plus' = 'active'): Promise<void> {
+	if (!supabase) return;
+	const { data } = await supabase.functions.invoke('alfy-stripe-checkout', { body: { plan } });
+	if (data?.url) window.location.href = data.url;
+}
+
 export function breakdown(items: HandledItem[]): Breakdown {
 	const counts = new Map<string, number>();
 	for (const i of items) counts.set(i.kind, (counts.get(i.kind) ?? 0) + 1);
