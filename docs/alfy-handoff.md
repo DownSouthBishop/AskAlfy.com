@@ -42,8 +42,8 @@ tree for future non-Google apps only; it is not called anywhere in Phase 1's cod
 | SMS inbound webhook + onboarding on "YES" | ✅ done | `supabase/functions/alfy-sms-inbound/` (Twilio signature now enforced) |
 | Magic-link handler (session mint) | ✅ done | `supabase/functions/alfy-link/` |
 | `/a` handoff page (token → session → deep-link) | ✅ done | `src/pages/a.astro`, `src/components/AuthHandoff.tsx` |
-| Approval executor | ✅ scaffold | `supabase/functions/alfy-approve/` (send_email, create_event; other action_types fail gracefully) |
-| Google OAuth connect flow | ✅ scaffold | `supabase/functions/alfy-connect/`, `src/pages/auth/google-callback.astro` + Settings button |
+| Approval executor | ✅ scaffold | `supabase/functions/alfy-approve/` (~28 action_types across Gmail/Calendar/Tasks/Drive/Docs/Sheets; anything else fails gracefully) |
+| Google OAuth connect flow | ✅ scaffold | `supabase/functions/alfy-connect/`, `src/pages/auth/google-callback.astro` + Settings button (one consent screen, all scopes) |
 | Approve button → executes | ✅ done | `src/lib/queue.ts` (`approveItem` → `alfy-approve`) |
 
 "Scaffold" = complete structure, correct DB logic, external API calls marked `VERIFY`.
@@ -82,9 +82,11 @@ actions specifically, connect Google first from Settings → Connections.
 ## `docs/prymal-port-reference.md` §9 for what's already self-verified)
 
 - [ ] **Google OAuth token exchange + refresh** (`alfy-connect`, `_shared/google.ts`) against
-      a real GCP OAuth client — redirect URI must match exactly.
-- [ ] **Gmail send/read + Calendar create/read REST calls** (`_shared/google.ts`) against a
-      real connected Google account.
+      a real GCP OAuth client — redirect URI must match exactly, and the single consent
+      screen must actually grant all 6 scopes (gmail/calendar/tasks/drive.file/docs/sheets).
+- [ ] **Gmail/Calendar/Tasks/Drive/Docs/Sheets REST calls** (`_shared/google.ts`) against a
+      real connected Google account — Phase 3 widened this from just Gmail send/read +
+      Calendar create/read to the full ~28-action_type set; none of it has hit a live API yet.
 - [ ] **Twilio signature** verification in `alfy-sms-inbound` (now implemented — verify
       against a live Twilio webhook, not just unit logic).
 - [ ] **Twilio send** (Messages API basic-auth) — confirm creds/format.
@@ -101,8 +103,21 @@ and write the extended `people` table directly (not queued — it's memory, not 
 action). The "Alfy knows" tab now reads real `people`/`standing_permissions` data instead
 of hardcoded demo constants, and its Trust "revoke" button actually revokes.
 
-**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):** Tasks/Drive/
-Docs/Sheets, standing-instruction tools + automation runner, Stripe billing/plan tiers.
+**Phase 3 update:** Tasks (`list_tasks`, `create_task`, `update_task`, `complete_task`),
+Drive (`search_drive_files`, `get_file_info`, `read_drive_file`, `create_folder`,
+`move_file`, `rename_file`, `delete_file`, `share_file` — covers both per-person sharing
+and "anyone with the link"), and Docs/Sheets (`read_document`, `read_sheet`,
+`create_document`, `update_document`, `create_sheet`, `update_sheet`) are now wired end to
+end the same way as Gmail/Calendar. The "Connect Google" flow was simplified to a single
+consent screen covering all six scopes at once (`src/lib/config.ts`'s `GOOGLE_SCOPES`) — one
+access/refresh token pair gets stored under all 6 `oauth_tokens` platform rows, rather than
+requiring six separate OAuth round-trips. `drive.file` scope means Alfy can only see files it
+created or the person explicitly opened with it, not the whole Drive (see gotcha in
+`docs/prymal-port-reference.md` §1) — full Drive access needs a Google security review.
+
+**Not built yet (see `docs/prymal-port-reference.md` for the full roadmap):**
+standing-instruction tools + automation runner, Stripe billing/plan tiers. Slides/Forms/Keep
+were judged niche and skipped per the reference doc's own call.
 
 ---
 

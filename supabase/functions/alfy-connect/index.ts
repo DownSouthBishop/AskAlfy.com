@@ -1,8 +1,13 @@
 // alfy-connect — exchanges a Google OAuth authorization code for tokens and marks the
 // connection active. The consent-screen redirect is built client-side
-// (src/lib/queue.ts's connectProvider, since GOOGLE_CLIENT_ID is public) — this
+// (src/lib/queue.ts's connectGoogle, since GOOGLE_CLIENT_ID is public) — this
 // function only ever sees the `code` Google hands back on the callback page.
-// Replaces the previous Composio connected_accounts/link flow for Gmail/Calendar.
+// Replaces the previous Composio connected_accounts/link flow.
+//
+// One consent screen grants scopes for Gmail, Calendar, Tasks, Drive, Docs, and Sheets at
+// once (see src/lib/config.ts's GOOGLE_SCOPES) — the resulting access/refresh token pair is
+// valid for all of them, so it's stored under every platform row _shared/google.ts's
+// getFreshToken looks up by, rather than requiring six separate connect flows.
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -13,11 +18,7 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')!;
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')!;
 
-// provider (as stored in `connections`) → platform string (as stored in `oauth_tokens`).
-const PLATFORM: Record<string, string> = {
-	gmail: 'gmail',
-	googlecalendar: 'calendar',
-};
+const GOOGLE_PLATFORMS = ['gmail', 'calendar', 'tasks', 'drive', 'docs', 'sheets'];
 
 Deno.serve(async (req) => {
 	const cors = corsHeaders(req);
@@ -35,9 +36,7 @@ Deno.serve(async (req) => {
 	const { data: acct } = await supa.from('users').select('id').eq('auth_user_id', user.id).single();
 	if (!acct) return new Response(JSON.stringify({ error: 'no account' }), { status: 404, headers: cors });
 
-	const { provider, code, redirect_uri } = await req.json();
-	const platform = PLATFORM[provider];
-	if (!platform) return new Response(JSON.stringify({ error: `unknown provider ${provider}` }), { status: 400, headers: cors });
+	const { code, redirect_uri } = await req.json();
 	if (!code || !redirect_uri) return new Response(JSON.stringify({ error: 'missing code or redirect_uri' }), { status: 400, headers: cors });
 
 	const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -57,23 +56,24 @@ Deno.serve(async (req) => {
 	}
 
 	const expiresAt = new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000).toISOString();
+	const now = new Date().toISOString();
 
 	await supa.from('oauth_tokens').upsert(
-		{
+		GOOGLE_PLATFORMS.map((platform) => ({
 			user_id: acct.id,
 			platform,
 			access_token: tokens.access_token,
 			refresh_token: tokens.refresh_token,
 			expires_at: expiresAt,
-			updated_at: new Date().toISOString(),
-		},
+			updated_at: now,
+		})),
 		{ onConflict: 'user_id,platform' },
 	);
 
 	await supa.from('connections').upsert(
-		{ user_id: acct.id, provider, status: 'active', connected_at: new Date().toISOString() },
+		{ user_id: acct.id, provider: 'google', status: 'active', connected_at: now },
 		{ onConflict: 'user_id,provider' },
 	);
 
-	return new Response(JSON.stringify({ success: true, provider }), { headers: { 'Content-Type': 'application/json', ...cors } });
+	return new Response(JSON.stringify({ success: true, provider: 'google' }), { headers: { 'Content-Type': 'application/json', ...cors } });
 });

@@ -83,20 +83,19 @@ export async function skipItem(id: string | number): Promise<void> {
 }
 
 // Builds the Google consent-screen URL client-side (GOOGLE_CLIENT_ID is public) and
-// redirects straight to it. The callback page (/auth/google-callback) hands the returned
-// code to alfy-connect, which does the actual token exchange.
-export function connectProvider(provider: string): void {
-	const scopes = GOOGLE_SCOPES[provider];
-	if (!scopes) return;
+// redirects straight to it, asking for every scope Alfy's tools use in one screen. The
+// callback page (/auth/google-callback) hands the returned code to alfy-connect, which
+// does the actual token exchange.
+export function connectGoogle(): void {
 	const redirectUri = `${window.location.origin}/auth/google-callback`;
 	const params = new URLSearchParams({
 		client_id: GOOGLE_CLIENT_ID,
 		redirect_uri: redirectUri,
 		response_type: 'code',
-		scope: scopes.join(' '),
+		scope: GOOGLE_SCOPES.join(' '),
 		access_type: 'offline',
 		prompt: 'consent',
-		state: provider,
+		state: 'google',
 	});
 	window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }

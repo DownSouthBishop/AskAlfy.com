@@ -9,7 +9,19 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
-import { calendarGetAvailability, calendarListEvents, getFreshToken, gmailGetThread, gmailList, gmailListLabels } from './google.ts';
+import {
+	calendarGetAvailability,
+	calendarListEvents,
+	driveGetFileInfo,
+	driveReadFileContent,
+	driveSearchFiles,
+	getFreshToken,
+	gmailGetThread,
+	gmailList,
+	gmailListLabels,
+	sheetsRead,
+	tasksList,
+} from './google.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -286,6 +298,169 @@ const TOOLS: Anthropic.Tool[] = [
 		},
 	},
 	{
+		name: 'list_tasks',
+		description: 'List tasks on the default Google Tasks list (read-only).',
+		input_schema: { type: 'object', properties: {} },
+	},
+	{
+		name: 'create_task',
+		description: 'Draft and queue a new task for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { title: { type: 'string' }, description: { type: 'string' }, dueDate: { type: 'string' } },
+			required: ['title'],
+		},
+	},
+	{
+		name: 'update_task',
+		description: 'Draft and queue changes to an existing task for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				taskId: { type: 'string' },
+				title: { type: 'string' },
+				description: { type: 'string' },
+				dueDate: { type: 'string' },
+				status: { type: 'string' },
+			},
+			required: ['taskId'],
+		},
+	},
+	{
+		name: 'complete_task',
+		description: 'Queue marking a task complete for the person to approve.',
+		input_schema: { type: 'object', properties: { taskId: { type: 'string' } }, required: ['taskId'] },
+	},
+	{
+		name: 'search_drive_files',
+		description: 'Search or list recent files in Drive that this app can see — files it created or the person opened with it (read-only). Omit query to list recent files.',
+		input_schema: {
+			type: 'object',
+			properties: { query: { type: 'string' }, maxResults: { type: 'number', default: 10 } },
+		},
+	},
+	{
+		name: 'get_file_info',
+		description: 'Get metadata for a Drive file by id (read-only).',
+		input_schema: { type: 'object', properties: { fileId: { type: 'string' } }, required: ['fileId'] },
+	},
+	{
+		name: 'read_drive_file',
+		description: 'Read the text content of a Drive file by id — Docs/Sheets/Slides are exported to plain text (read-only). For structured spreadsheet cells, use read_sheet instead.',
+		input_schema: { type: 'object', properties: { fileId: { type: 'string' } }, required: ['fileId'] },
+	},
+	{
+		name: 'read_document',
+		description: 'Read a Google Doc as plain text by id (read-only).',
+		input_schema: { type: 'object', properties: { documentId: { type: 'string' } }, required: ['documentId'] },
+	},
+	{
+		name: 'read_sheet',
+		description: 'Read structured cell values from a Google Sheet (read-only). Omit range to read the whole spreadsheet.',
+		input_schema: {
+			type: 'object',
+			properties: { spreadsheetId: { type: 'string' }, range: { type: 'string' } },
+			required: ['spreadsheetId'],
+		},
+	},
+	{
+		name: 'create_folder',
+		description: 'Draft and queue creating a new Drive folder for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { name: { type: 'string' }, parentFolderId: { type: 'string' } },
+			required: ['name'],
+		},
+	},
+	{
+		name: 'move_file',
+		description: 'Queue moving a Drive file into another folder for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { fileId: { type: 'string' }, targetFolderId: { type: 'string' } },
+			required: ['fileId', 'targetFolderId'],
+		},
+	},
+	{
+		name: 'rename_file',
+		description: 'Queue renaming a Drive file for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { fileId: { type: 'string' }, newName: { type: 'string' } },
+			required: ['fileId', 'newName'],
+		},
+	},
+	{
+		name: 'delete_file',
+		description: 'Queue deleting a Drive file for the person to approve. Defaults to trash (reversible) unless permanently is true.',
+		input_schema: {
+			type: 'object',
+			properties: { fileId: { type: 'string' }, permanently: { type: 'boolean', default: false } },
+			required: ['fileId'],
+		},
+	},
+	{
+		name: 'share_file',
+		description: "Queue sharing a Drive file for the person to approve — either with specific people (emailAddresses) or as an 'anyone with the link' grant (type: 'anyone').",
+		input_schema: {
+			type: 'object',
+			properties: {
+				fileId: { type: 'string' },
+				emailAddresses: { type: 'array', items: { type: 'string' } },
+				role: { type: 'string', enum: ['reader', 'commenter', 'writer'] },
+				type: { type: 'string', enum: ['user', 'anyone'], default: 'user' },
+				sendNotification: { type: 'boolean' },
+			},
+			required: ['role'],
+		},
+	},
+	{
+		name: 'create_document',
+		description: 'Draft and queue a new Google Doc for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { title: { type: 'string' }, content: { type: 'string' }, parentFolderId: { type: 'string' } },
+			required: ['title'],
+		},
+	},
+	{
+		name: 'update_document',
+		description: 'Draft and queue changes to an existing Google Doc for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				documentId: { type: 'string' },
+				content: { type: 'string' },
+				mode: { type: 'string', enum: ['append', 'replace'], default: 'append' },
+			},
+			required: ['documentId', 'content'],
+		},
+	},
+	{
+		name: 'create_sheet',
+		description: 'Draft and queue a new Google Sheet for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: { title: { type: 'string' }, parentFolderId: { type: 'string' } },
+			required: ['title'],
+		},
+	},
+	{
+		name: 'update_sheet',
+		description: 'Draft and queue writing values into a Google Sheet range for the person to approve.',
+		input_schema: {
+			type: 'object',
+			properties: {
+				spreadsheetId: { type: 'string' },
+				sheetName: { type: 'string' },
+				range: { type: 'string' },
+				values: { type: 'array', items: { type: 'array' }, description: '2D array of row values' },
+				mode: { type: 'string', enum: ['append', 'overwrite'], default: 'overwrite' },
+			},
+			required: ['spreadsheetId', 'range', 'values'],
+		},
+	},
+	{
 		name: 'queue_action',
 		description: "Queue an outbound action with no dedicated tool yet, for the person to approve. Nothing happens until they say yes.",
 		input_schema: {
@@ -528,6 +703,141 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 					endTime: input.endTime,
 					attendees: input.attendees ?? [],
 					description: input.description ?? null,
+				},
+			});
+		case 'list_tasks': {
+			const token = await getFreshToken(supa, userId, 'tasks');
+			if (!token) return NOT_CONNECTED('Tasks');
+			return await tasksList(token);
+		}
+		case 'search_drive_files': {
+			const token = await getFreshToken(supa, userId, 'drive');
+			if (!token) return NOT_CONNECTED('Drive');
+			return await driveSearchFiles(token, input.query as string | undefined, (input.maxResults as number) ?? 10);
+		}
+		case 'get_file_info': {
+			const token = await getFreshToken(supa, userId, 'drive');
+			if (!token) return NOT_CONNECTED('Drive');
+			return await driveGetFileInfo(token, input.fileId as string);
+		}
+		case 'read_drive_file': {
+			const token = await getFreshToken(supa, userId, 'drive');
+			if (!token) return NOT_CONNECTED('Drive');
+			return { content: await driveReadFileContent(token, input.fileId as string) };
+		}
+		case 'read_document': {
+			const token = await getFreshToken(supa, userId, 'docs');
+			if (!token) return NOT_CONNECTED('Docs');
+			return { content: await driveReadFileContent(token, input.documentId as string) };
+		}
+		case 'read_sheet': {
+			const token = await getFreshToken(supa, userId, 'sheets');
+			if (!token) return NOT_CONNECTED('Sheets');
+			return await sheetsRead(token, input.spreadsheetId as string, input.range as string | undefined);
+		}
+		case 'create_task':
+			return await queue(supa, userId, {
+				kind: 'Task',
+				summary: String(input.title),
+				draft_content: (input.description as string | undefined) ?? null,
+				action_type: 'create_task',
+				action_payload: { title: input.title, description: input.description ?? null, dueDate: input.dueDate ?? null },
+			});
+		case 'update_task':
+			return await queue(supa, userId, {
+				kind: 'Task',
+				summary: `Update task: ${input.title ?? input.taskId}`,
+				action_type: 'update_task',
+				action_payload: {
+					taskId: input.taskId,
+					title: input.title,
+					description: input.description,
+					dueDate: input.dueDate,
+					status: input.status,
+				},
+			});
+		case 'complete_task':
+			return await queue(supa, userId, {
+				kind: 'Task',
+				summary: 'Mark task complete',
+				action_type: 'complete_task',
+				action_payload: { taskId: input.taskId },
+			});
+		case 'create_folder':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: `New folder: ${input.name}`,
+				action_type: 'create_folder',
+				action_payload: { name: input.name, parentFolderId: input.parentFolderId ?? null },
+			});
+		case 'move_file':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: 'Move a file',
+				action_type: 'move_file',
+				action_payload: { fileId: input.fileId, targetFolderId: input.targetFolderId },
+			});
+		case 'rename_file':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: `Rename file to "${input.newName}"`,
+				action_type: 'rename_file',
+				action_payload: { fileId: input.fileId, newName: input.newName },
+			});
+		case 'delete_file':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: (input.permanently as boolean | undefined) ? 'Permanently delete a file' : 'Move a file to trash',
+				action_type: 'delete_file',
+				action_payload: { fileId: input.fileId, permanently: input.permanently ?? false },
+			});
+		case 'share_file':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: input.type === 'anyone' ? 'Share a file with anyone with the link' : `Share a file with ${(input.emailAddresses as unknown[] | undefined)?.length ?? 0} people`,
+				action_type: 'share_file',
+				action_payload: {
+					fileId: input.fileId,
+					emailAddresses: input.emailAddresses ?? [],
+					role: input.role,
+					type: input.type ?? 'user',
+					sendNotification: input.sendNotification,
+				},
+			});
+		case 'create_document':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: `New doc: ${input.title}`,
+				draft_content: (input.content as string | undefined) ?? null,
+				action_type: 'create_document',
+				action_payload: { title: input.title, content: input.content ?? null, parentFolderId: input.parentFolderId ?? null },
+			});
+		case 'update_document':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: 'Update a doc',
+				draft_content: input.content as string,
+				action_type: 'update_document',
+				action_payload: { documentId: input.documentId, mode: input.mode ?? 'append' },
+			});
+		case 'create_sheet':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: `New sheet: ${input.title}`,
+				action_type: 'create_sheet',
+				action_payload: { title: input.title, parentFolderId: input.parentFolderId ?? null },
+			});
+		case 'update_sheet':
+			return await queue(supa, userId, {
+				kind: 'Drive',
+				summary: 'Update a sheet',
+				action_type: 'update_sheet',
+				action_payload: {
+					spreadsheetId: input.spreadsheetId,
+					sheetName: input.sheetName ?? null,
+					range: input.range,
+					values: input.values,
+					mode: input.mode ?? 'overwrite',
 				},
 			});
 		case 'queue_action':

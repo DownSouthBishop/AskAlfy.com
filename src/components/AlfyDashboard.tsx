@@ -11,7 +11,7 @@ import {
 	revokeTrust,
 	approveItem,
 	skipItem,
-	connectProvider,
+	connectGoogle,
 	breakdown,
 	type QueueItem,
 	type HandledItem,
@@ -424,7 +424,7 @@ export default function AlfyDashboard() {
 								<span className="text-espresso">Connections</span>
 								<button
 									type="button"
-									onClick={() => connectProvider('gmail')}
+									onClick={() => connectGoogle()}
 									className="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso"
 								>
 									Connect Google

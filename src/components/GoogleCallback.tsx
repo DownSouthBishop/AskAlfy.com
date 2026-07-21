@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-// The /auth/google-callback landing. Google redirects here with ?code=&state=<provider>
-// after consent; this hands the code to alfy-connect, which exchanges it for tokens.
+// The /auth/google-callback landing. Google redirects here with ?code=&state=google
+// after consent (one screen covers every Google scope Alfy's tools use); this hands the
+// code to alfy-connect, which exchanges it for tokens.
 
 export default function GoogleCallback() {
 	const [msg, setMsg] = useState('Connecting…');
@@ -11,8 +12,7 @@ export default function GoogleCallback() {
 		(async () => {
 			const params = new URLSearchParams(window.location.search);
 			const code = params.get('code');
-			const provider = params.get('state');
-			if (!code || !provider) return void window.location.replace('/app');
+			if (!code) return void window.location.replace('/app');
 			if (!supabase) return setMsg("Sign-in isn't switched on yet.");
 
 			const { data: { session } } = await supabase.auth.getSession();
@@ -20,10 +20,10 @@ export default function GoogleCallback() {
 
 			const redirect_uri = `${window.location.origin}/auth/google-callback`;
 			const { error } = await supabase.functions.invoke('alfy-connect', {
-				body: { provider, code, redirect_uri },
+				body: { code, redirect_uri },
 			});
 
-			window.location.replace(error ? '/app?connect_failed=1' : `/app?connected=${provider}`);
+			window.location.replace(error ? '/app?connect_failed=1' : '/app?connected=google');
 		})();
 	}, []);
 

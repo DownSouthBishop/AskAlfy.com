@@ -10,6 +10,13 @@ import {
 	calendarDeleteEvent,
 	calendarScheduleMeet,
 	calendarUpdateEvent,
+	docsCreate,
+	docsUpdate,
+	driveCreateFolder,
+	driveDeleteFile,
+	driveMoveFile,
+	driveRenameFile,
+	driveSetPermissions,
 	getFreshToken,
 	gmailApplyLabel,
 	gmailArchive,
@@ -22,6 +29,11 @@ import {
 	gmailSend,
 	gmailSetAutoReply,
 	gmailTrash,
+	sheetsCreate,
+	sheetsUpdate,
+	tasksComplete,
+	tasksCreate,
+	tasksUpdate,
 } from '../_shared/google.ts';
 import { sendSms, TWILIO_FROM_NUMBER } from '../_shared/twilio.ts';
 
@@ -144,6 +156,85 @@ Deno.serve(async (req) => {
 				const token = await getFreshToken(supa, row.user_id, 'calendar');
 				if (!token) throw new Error('Calendar is not connected.');
 				await calendarScheduleMeet(token, row.action_payload as Parameters<typeof calendarScheduleMeet>[1]);
+				break;
+			}
+			case 'create_task': {
+				const token = await getFreshToken(supa, row.user_id, 'tasks');
+				if (!token) throw new Error('Tasks is not connected.');
+				await tasksCreate(token, row.action_payload as Parameters<typeof tasksCreate>[1]);
+				break;
+			}
+			case 'update_task': {
+				const token = await getFreshToken(supa, row.user_id, 'tasks');
+				if (!token) throw new Error('Tasks is not connected.');
+				const payload = row.action_payload as { taskId: string };
+				await tasksUpdate(token, payload.taskId, row.action_payload as Parameters<typeof tasksUpdate>[2]);
+				break;
+			}
+			case 'complete_task': {
+				const token = await getFreshToken(supa, row.user_id, 'tasks');
+				if (!token) throw new Error('Tasks is not connected.');
+				await tasksComplete(token, (row.action_payload as { taskId: string }).taskId);
+				break;
+			}
+			case 'create_folder': {
+				const token = await getFreshToken(supa, row.user_id, 'drive');
+				if (!token) throw new Error('Drive is not connected.');
+				await driveCreateFolder(token, row.action_payload as Parameters<typeof driveCreateFolder>[1]);
+				break;
+			}
+			case 'move_file': {
+				const token = await getFreshToken(supa, row.user_id, 'drive');
+				if (!token) throw new Error('Drive is not connected.');
+				const payload = row.action_payload as { fileId: string; targetFolderId: string };
+				await driveMoveFile(token, payload.fileId, payload.targetFolderId);
+				break;
+			}
+			case 'rename_file': {
+				const token = await getFreshToken(supa, row.user_id, 'drive');
+				if (!token) throw new Error('Drive is not connected.');
+				const payload = row.action_payload as { fileId: string; newName: string };
+				await driveRenameFile(token, payload.fileId, payload.newName);
+				break;
+			}
+			case 'delete_file': {
+				const token = await getFreshToken(supa, row.user_id, 'drive');
+				if (!token) throw new Error('Drive is not connected.');
+				const payload = row.action_payload as { fileId: string; permanently?: boolean };
+				await driveDeleteFile(token, payload.fileId, payload.permanently ?? false);
+				break;
+			}
+			case 'share_file': {
+				const token = await getFreshToken(supa, row.user_id, 'drive');
+				if (!token) throw new Error('Drive is not connected.');
+				const payload = row.action_payload as { fileId: string } & Parameters<typeof driveSetPermissions>[2];
+				await driveSetPermissions(token, payload.fileId, payload);
+				break;
+			}
+			case 'create_document': {
+				const token = await getFreshToken(supa, row.user_id, 'docs');
+				if (!token) throw new Error('Docs is not connected.');
+				await docsCreate(token, row.action_payload as Parameters<typeof docsCreate>[1]);
+				break;
+			}
+			case 'update_document': {
+				const token = await getFreshToken(supa, row.user_id, 'docs');
+				if (!token) throw new Error('Docs is not connected.');
+				const payload = row.action_payload as { documentId: string; mode?: 'append' | 'replace' };
+				await docsUpdate(token, payload.documentId, { content: row.draft_content ?? '', mode: payload.mode });
+				break;
+			}
+			case 'create_sheet': {
+				const token = await getFreshToken(supa, row.user_id, 'sheets');
+				if (!token) throw new Error('Sheets is not connected.');
+				await sheetsCreate(token, row.action_payload as Parameters<typeof sheetsCreate>[1]);
+				break;
+			}
+			case 'update_sheet': {
+				const token = await getFreshToken(supa, row.user_id, 'sheets');
+				if (!token) throw new Error('Sheets is not connected.');
+				const payload = row.action_payload as { spreadsheetId: string };
+				await sheetsUpdate(token, payload.spreadsheetId, row.action_payload as Parameters<typeof sheetsUpdate>[2]);
 				break;
 			}
 			default: {
