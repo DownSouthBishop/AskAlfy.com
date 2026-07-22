@@ -30,7 +30,7 @@ supabase db push                        # creates every table + security rules
 supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
   ANTHROPIC_API_KEY=... COMPOSIO_API_KEY=... COMPOSIO_AUTHCFG_GMAIL=... \
   COMPOSIO_AUTHCFG_CALENDAR=... TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=...
-supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-brief alfy-recap
 ```
 Then:
 - **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).

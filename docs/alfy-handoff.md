@@ -65,18 +65,19 @@ supabase secrets set \
   PUBLIC_APP_URL=https://askalfy.com
 ```
 
-**4 — Deploy functions** → turns the five `fn …` lines green. Two are called by machines,
+**4 — Deploy functions** → turns the `fn …` lines green. Four are called by machines,
 not sessions, and must skip the JWT gate:
 ```bash
 supabase functions deploy alfy-agent alfy-approve alfy-connect
 supabase functions deploy alfy-sms-inbound --no-verify-jwt   # caller is Twilio (signature-authenticated)
 supabase functions deploy alfy-link       --no-verify-jwt    # caller has no session yet — that's the point
 supabase functions deploy alfy-brief      --no-verify-jwt    # caller is pg_cron (x-runner-key)
+supabase functions deploy alfy-recap      --no-verify-jwt    # same
 ```
 
-**4b — Schedule the daily brief.** The cron entry can't live in a migration: pg_net sends
-the shared secret as a literal in the SQL body, which must never be committed. Run it once,
-live, against the project — same value you set as `INTERNAL_FUNCTION_SECRET`:
+**4b — Schedule the brief and the night note.** The cron entries can't live in a migration:
+pg_net sends the shared secret as a literal in the SQL body, which must never be committed.
+Run them once, live, against the project — same value you set as `INTERNAL_FUNCTION_SECRET`:
 ```sql
 select cron.schedule('alfy-brief', '0 * * * *', $cron$
   select net.http_post(
@@ -84,9 +85,18 @@ select cron.schedule('alfy-brief', '0 * * * *', $cron$
     headers := '{"Content-Type":"application/json","x-runner-key":"<INTERNAL_FUNCTION_SECRET>"}'::jsonb
   );
 $cron$);
+
+select cron.schedule('alfy-recap', '0 * * * *', $cron$
+  select net.http_post(
+    url     := 'https://<ref>.supabase.co/functions/v1/alfy-recap',
+    headers := '{"Content-Type":"application/json","x-runner-key":"<INTERNAL_FUNCTION_SECRET>"}'::jsonb
+  );
+$cron$);
 ```
-It ticks hourly and sends to whoever's *local* brief hour has just come round, so one entry
-covers every timezone. Verify with `select * from cron.job;`.
+Both tick hourly and send to whoever's *local* hour has just come round, so one entry each
+covers every timezone. The brief goes at `brief_hour` (default 7); the note goes the hour
+before `quiet_hours_start` (default 21, so 20:00) and therefore can never land inside quiet
+hours. Verify with `select * from cron.job;`.
 
 **5 — Twilio → Supabase**
 - Twilio console → the number → Messaging → inbound webhook → the `alfy-sms-inbound`
@@ -117,6 +127,13 @@ fires → confirmation text arrives.
 fire it by hand:
 ```bash
 curl -X POST https://<ref>.supabase.co/functions/v1/alfy-brief -H "x-runner-key: $INTERNAL_FUNCTION_SECRET"
+```
+
+**The night note:** same, with `quiet_hours_start` set to the hour *after* next. It only
+sends if something actually happened, so approve or queue one thing first — an empty day is
+supposed to stay silent. Response `{"quiet":1}` means it claimed you and found nothing to say.
+```bash
+curl -X POST https://<ref>.supabase.co/functions/v1/alfy-recap -H "x-runner-key: $INTERNAL_FUNCTION_SECRET"
 ```
 It returns `{claimed, sent, failed, deferred}`. Note `claim_briefs` marks people done
 **before** running, so a second immediate call correctly claims nobody.

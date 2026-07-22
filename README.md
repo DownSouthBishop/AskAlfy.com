@@ -47,6 +47,7 @@ npm run doctor   # prints exactly what's still missing, with the command to fix 
                                     (+ maybe an offer)         └──▶ Composio (write)
 
         pg_cron (hourly) ──▶ alfy-brief ──▶ agent loop ──▶ your morning text
+                        └──▶ alfy-recap ──▶ approval_queue ──▶ your night note
 ```
 
 | Piece | What it is |
@@ -54,7 +55,7 @@ npm run doctor   # prints exactly what's still missing, with the command to fix 
 | **Marketing site** | Astro, static. The only CTA is the phone number. |
 | **Dashboard** (`/app`) | Three tabs — Today, Handled, Alfy knows. React island. |
 | **Login** | Phone OTP, plus a one-time link Alfy texts you (`/a?t=…`). |
-| **Edge functions** | Six Deno functions under `supabase/functions/`. |
+| **Edge functions** | Seven Deno functions under `supabase/functions/`. |
 | **Database** | Postgres with RLS on every table from row one. |
 
 ### The agent carries three tools, not one per app
@@ -181,6 +182,7 @@ function's time limit.
 | `npm run doctor` | Setup checklist — every ✗ carries the command that fixes it |
 | `npm run build` | Static build. Fails **on CI** if the placeholder phone number is still in place |
 | `npm run check:actions` | The approval gate + card derivation. **Run after touching verb lists** |
+| `npm run check:recap` | The night note's wording, shape, and length. No model writes it |
 | `npm run check:functions` | Typechecks the edge functions with Deno (the Astro build never sees them) |
 
 ---
@@ -194,15 +196,17 @@ src/
   lib/              supabase client, queue (data layer + demo fallback), config
 supabase/
   functions/
-    _shared/        agent, actions, composio, twilio, env, cors
+    _shared/        agent, actions, composio, twilio, links, recap, env, cors
     alfy-sms-inbound  Twilio webhook — the front door
     alfy-approve      the ONLY place an outbound action fires
     alfy-brief        pg_cron target for the daily brief
+    alfy-recap        pg_cron target for the night note — reads the ledger, no model
     alfy-connect      starts a Composio OAuth connect
     alfy-link         one-time SMS token → dashboard session
     alfy-agent        the loop on its own, for testing
   migrations/       0001 core+RLS · 0002 approval · 0003 brief · 0004 integrity · 0005 autonomy
-scripts/            doctor, check-actions
+                    0006 night note
+scripts/            doctor, check-actions, check-recap
 docs/               alfy-handoff.md — the setup checklist
 ```
 

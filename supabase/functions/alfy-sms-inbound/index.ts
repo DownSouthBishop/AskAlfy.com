@@ -8,6 +8,7 @@
 import { createClient } from 'npm:@supabase/supabase-js';
 import { runAgent, type Supa } from '../_shared/agent.ts';
 import { optionalEnv, requireEnv } from '../_shared/env.ts';
+import { mintLink } from '../_shared/links.ts';
 import { sendSms, TWILIO_FROM, validateTwilioSignature } from '../_shared/twilio.ts';
 
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
@@ -22,10 +23,6 @@ const PG_UNIQUE_VIOLATION = '23505';
 const AFFIRMATIVE = new Set(['YES', 'Y', 'YEP', 'YEAH', 'OK', 'OKAY', 'SURE', 'DO IT', 'PLEASE DO']);
 const NEGATIVE = new Set(['NO', 'N', 'NOPE', 'NAH', "DON'T", 'DONT', 'NO THANKS']);
 const OFFER_WINDOW_MS = 24 * 60 * 60 * 1000;
-
-function randomToken() {
-	return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
-}
 
 // Every account carries a synthetic auth email derived from its number, so the phone-first
 // user can still mint email-style magic links (see alfy-link). Never actually emailed.
@@ -180,13 +177,7 @@ Deno.serve(async (req) => {
 	// Deep-link the approval at what THIS turn queued, not whatever happens to be pending.
 	let text = turn.reply;
 	if (turn.queuedId) {
-		const token = randomToken();
-		await supa.from('access_links').insert({
-			user_id: phone.user_id,
-			approval_id: turn.queuedId,
-			token,
-			expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
-		});
+		const token = await mintLink(supa, phone.user_id as string, turn.queuedId, 30 * 60_000);
 		text += `\nApprove: ${APP_URL}/a?t=${token}`;
 	}
 

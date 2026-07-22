@@ -104,7 +104,7 @@ if (!migrations) {
 }
 
 // ── 4. Functions deployed ────────────────────────────────────────────────────
-const FUNCTIONS = ['alfy-agent', 'alfy-sms-inbound', 'alfy-link', 'alfy-approve', 'alfy-connect', 'alfy-brief'];
+const FUNCTIONS = ['alfy-agent', 'alfy-sms-inbound', 'alfy-link', 'alfy-approve', 'alfy-connect', 'alfy-brief', 'alfy-recap'];
 const supaUrl = globalThis.__alfyEnv?.PUBLIC_SUPABASE_URL;
 
 if (!supaUrl) {
