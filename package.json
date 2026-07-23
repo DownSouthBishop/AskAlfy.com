@@ -14,6 +14,7 @@
     "check:functions": "npx --yes deno@2 check --node-modules-dir=auto supabase/functions/*/index.ts",
     "check:actions": "node --experimental-strip-types scripts/check-actions.mjs",
     "check:recap": "node --experimental-strip-types scripts/check-recap.mjs",
+    "check:metering": "node --experimental-strip-types scripts/check-metering.mjs",
     "astro": "astro"
   },
   "dependencies": {

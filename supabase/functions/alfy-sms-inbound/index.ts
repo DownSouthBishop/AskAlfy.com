@@ -1,15 +1,16 @@
-// alfy-sms-inbound — Twilio Messaging webhook. The front door.
+// alfy-sms-inbound — Telnyx Messaging webhook. The front door.
 // Verify, dedupe, route, run the agent, text back. At scale, swap the inline runAgent for
 // an enqueue + worker (see docs/alfy-handoff.md) — the seam is right here.
 //
-// Deploy with --no-verify-jwt: the caller is Twilio, authenticated by its signature, not a
-// Supabase session.
+// Deploy with --no-verify-jwt: the caller is Telnyx, authenticated by its Ed25519 signature,
+// not a Supabase session.
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { runAgent, type Supa } from '../_shared/agent.ts';
 import { optionalEnv, requireEnv } from '../_shared/env.ts';
 import { mintLink } from '../_shared/links.ts';
-import { sendSms, TWILIO_FROM, validateTwilioSignature } from '../_shared/twilio.ts';
+import { capDecision, capNotice } from '../_shared/metering.ts';
+import { parseInbound, sendSms, SMS_FROM, verifyInboundSignature } from '../_shared/sms.ts';
 
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
@@ -35,7 +36,7 @@ async function reply(supa: Supa, userId: string, to: string, body: string) {
 	const segments = await sendSms(to, body);
 	await supa.from('messages').insert({
 		user_id: userId,
-		from_phone: TWILIO_FROM,
+		from_phone: SMS_FROM,
 		direction: 'outbound',
 		body,
 		segments: segments || 1,
@@ -44,19 +45,25 @@ async function reply(supa: Supa, userId: string, to: string, body: string) {
 
 Deno.serve(async (req) => {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-	const form = await req.formData();
-	const params: Record<string, string> = {};
-	for (const [key, value] of form.entries()) params[key] = String(value);
 
-	// Nothing above this line is trusted. Anyone who knows a number could otherwise drive
-	// the agent on that person's account.
-	if (!(await validateTwilioSignature(req, params))) {
-		return new Response('invalid signature', { status: 403 });
-	}
+	// Read the RAW body — Telnyx signs the exact bytes, so we verify before parsing. Nothing
+	// below this check is trusted; anyone who knows a number could otherwise drive the agent.
+	const raw = await req.text();
+	const okSig = await verifyInboundSignature(
+		raw,
+		req.headers.get('telnyx-signature-ed25519'),
+		req.headers.get('telnyx-timestamp'),
+	);
+	if (!okSig) return new Response('invalid signature', { status: 403 });
 
-	const from = params['From'] ?? '';
-	const body = (params['Body'] ?? '').trim();
-	const sid = params['MessageSid'] ?? '';
+	// The same webhook receives delivery receipts (message.sent / .finalized). Only a real
+	// inbound text should run anything — ack everything else with a 200.
+	const inbound = parseInbound(raw);
+	if (inbound.kind !== 'message') return new Response(null, { status: 200 });
+
+	const from = inbound.from;
+	const body = inbound.body.trim();
+	const sid = inbound.sid;
 
 	// Carrier-mandated keywords — handle before anything else.
 	const kw = body.toUpperCase();
@@ -151,9 +158,9 @@ Deno.serve(async (req) => {
 		// No open question: fall through and let the agent read it as an ordinary message.
 	}
 
-	// Dedupe on the twilio_sid unique index. Only a uniqueness collision means "already
-	// processed" — any other insert failure is a real error and must not silently drop
-	// the person's message.
+	// Dedupe on the twilio_sid unique index (the column predates the Telnyx swap; it now holds
+	// Telnyx's message id). Only a uniqueness collision means "already processed" — any other
+	// insert failure is a real error and must not silently drop the person's message.
 	const { error: logErr } = await supa.from('messages').insert({
 		user_id: phone.user_id, from_phone: from, direction: 'inbound', body, twilio_sid: sid,
 	});
@@ -163,7 +170,22 @@ Deno.serve(async (req) => {
 		return new Response('log failed', { status: 500 });
 	}
 
-	// The message row is already committed, so a Twilio retry would dedupe to a no-op and
+	// Daily cap. Enforced HERE — before the paid model — so an over-cap text never runs the
+	// agent. The message is already logged (so it counts toward `used`), and the count resets
+	// at the person's local midnight. Over the cap we tell them once, then stay silent so a
+	// spammer past their limit can't run up an outbound bill. See _shared/metering.ts.
+	const { data: usage } = await supa.rpc('daily_usage', { p_user: phone.user_id }).single();
+	if (usage) {
+		const action = capDecision((usage as { used: number }).used, (usage as { cap: number }).cap);
+		if (action !== 'run') {
+			if (action === 'notice') {
+				await reply(supa, phone.user_id as string, from, capNotice((usage as { cap: number }).cap));
+			}
+			return new Response(null, { status: 200 });
+		}
+	}
+
+	// The message row is already committed, so a provider retry would dedupe to a no-op and
 	// the person would hear nothing at all. Answer here instead of throwing.
 	let turn;
 	try {

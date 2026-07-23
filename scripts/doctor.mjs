@@ -39,7 +39,7 @@ const placeholder = config.match(/^export const PLACEHOLDER_PHONE = '(.*)';$/m)?
 
 if (!phoneLine) bad('ALFY_PHONE', 'could not parse src/lib/config.ts — is the export still there?');
 else if (phoneLine[1] === placeholder) {
-	bad('ALFY_PHONE', `still ${placeholder} → set the real Twilio number in src/lib/config.ts:9`);
+	bad('ALFY_PHONE', `still ${placeholder} → set the real Telnyx number in src/lib/config.ts:9`);
 } else ok('ALFY_PHONE', phoneLine[1]);
 
 if (strictOnly) {
@@ -93,7 +93,7 @@ if (!migrations) {
 		'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
 		'ANTHROPIC_API_KEY',
 		'COMPOSIO_API_KEY', 'COMPOSIO_AUTHCFG_GMAIL', 'COMPOSIO_AUTHCFG_CALENDAR',
-		'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER',
+		'TELNYX_API_KEY', 'TELNYX_PUBLIC_KEY', 'TELNYX_PHONE_NUMBER',
 		'PUBLIC_APP_URL',
 		'INTERNAL_FUNCTION_SECRET', // must match the value baked into the cron.schedule() call
 	];

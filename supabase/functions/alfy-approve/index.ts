@@ -8,7 +8,7 @@ import { composioExecute } from '../_shared/composio.ts';
 import { actionPhrase, canEarnAutonomy, isReadOnly } from '../_shared/actions.ts';
 import { requireEnv } from '../_shared/env.ts';
 import { CORS, JSON_CORS } from '../_shared/cors.ts';
-import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
+import { sendSms, SMS_FROM } from '../_shared/sms.ts';
 
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_ANON_KEY = requireEnv('SUPABASE_ANON_KEY');
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
 		const body = `Done — ${claimed.summary}. — A${await maybeOfferAutonomy(supa, claimed)}`;
 		const segments = await sendSms(phone.phone_e164 as string, body);
 		await supa.from('messages').insert({
-			user_id: claimed.user_id, from_phone: TWILIO_FROM, direction: 'outbound', body, segments: segments || 1,
+			user_id: claimed.user_id, from_phone: SMS_FROM, direction: 'outbound', body, segments: segments || 1,
 		});
 	}
 

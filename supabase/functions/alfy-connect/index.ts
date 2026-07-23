@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 	if (!user) return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: JSON_CORS });
 
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-	const { data: acct } = await supa.from('users').select('id').eq('auth_user_id', user.id).single();
+	const { data: acct } = await supa.from('users').select('id, app_limit').eq('auth_user_id', user.id).single();
 	if (!acct) return new Response(JSON.stringify({ error: 'no account' }), { status: 404, headers: JSON_CORS });
 
 	const { provider } = await req.json().catch(() => ({ provider: null }));
@@ -44,6 +44,27 @@ Deno.serve(async (req) => {
 			JSON.stringify({ error: `no auth config for ${provider} — set COMPOSIO_AUTHCFG_* in secrets` }),
 			{ status: 400, headers: JSON_CORS },
 		);
+	}
+
+	// App-connection limit — the second tier lever (features are flat; tiers differ on
+	// texts/day + apps). Reconnecting a provider the account already has is always allowed;
+	// only a NEW provider beyond the limit is gated. Count non-revoked connections.
+	const { data: existing } = await supa
+		.from('connections').select('id').eq('user_id', acct.id).eq('provider', provider).maybeSingle();
+	if (!existing) {
+		const { count } = await supa
+			.from('connections').select('id', { count: 'exact', head: true })
+			.eq('user_id', acct.id).neq('status', 'revoked');
+		if ((count ?? 0) >= (acct.app_limit as number)) {
+			return new Response(
+				JSON.stringify({
+					error: 'app_limit',
+					message: `Your plan connects up to ${acct.app_limit} apps. Bump your plan in the dashboard to add more.`,
+					limit: acct.app_limit,
+				}),
+				{ status: 402, headers: JSON_CORS },
+			);
+		}
 	}
 
 	try {

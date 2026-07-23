@@ -35,7 +35,7 @@ npm run doctor   # prints exactly what's still missing, with the command to fix 
 
 ```
         text ──▶ alfy-sms-inbound ──▶ agent loop ──▶ Composio Tool Router ──▶ your apps
-                  (Twilio sig)            │                                    (read)
+                  (Telnyx sig)            │                                    (read)
                                           │
                                     write?│
                                           ├─ standing okay for this exact thing?
@@ -196,8 +196,8 @@ src/
   lib/              supabase client, queue (data layer + demo fallback), config
 supabase/
   functions/
-    _shared/        agent, actions, composio, twilio, links, recap, env, cors
-    alfy-sms-inbound  Twilio webhook — the front door
+    _shared/        agent, actions, composio, sms, links, recap, env, cors
+    alfy-sms-inbound  Telnyx webhook — the front door
     alfy-approve      the ONLY place an outbound action fires
     alfy-brief        pg_cron target for the daily brief
     alfy-recap        pg_cron target for the night note — reads the ledger, no model
@@ -235,4 +235,4 @@ Written down so they read as decisions, not oversights.
 ## Stack
 
 Astro 7 · React 19 · Tailwind v4 · Supabase (Postgres + Deno edge functions) · Composio Tool
-Router · Twilio · Anthropic.
+Router · Telnyx · Anthropic.

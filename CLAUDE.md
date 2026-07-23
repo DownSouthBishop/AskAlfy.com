@@ -17,7 +17,7 @@ npm run dev          # open the printed URL → /app shows the dashboard on demo
 
 ### Step 2 — Make the 4 accounts (the only thing code can't do)
 1. **Supabase** — new project (a *fresh* one, not Prymal's). Copy its URL + anon key.
-2. **Twilio** — buy a phone number + register A2P 10DLC.
+2. **Telnyx** — buy a phone number + register A2P 10DLC; copy the API key and the account Ed25519 public key.
 3. **Composio** — one account; create a **custom auth config** for Gmail and for Calendar.
 4. **Anthropic** — one API key.
 
@@ -29,17 +29,18 @@ supabase db push                        # creates every table + security rules
 # set the backend secrets (names listed in .env.local.example):
 supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
   ANTHROPIC_API_KEY=... COMPOSIO_API_KEY=... COMPOSIO_AUTHCFG_GMAIL=... \
-  COMPOSIO_AUTHCFG_CALENDAR=... TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=...
+  COMPOSIO_AUTHCFG_CALENDAR=... TELNYX_API_KEY=... TELNYX_PUBLIC_KEY=... TELNYX_PHONE_NUMBER=...
 supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-brief alfy-recap
 ```
 Then:
-- **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).
-- **Twilio** → point the number's inbound webhook at the `alfy-sms-inbound` function URL.
+- **Telnyx** → point the messaging profile's inbound webhook at the `alfy-sms-inbound` function URL.
+- **Login OTP is separate** — Supabase Auth has no Telnyx provider. Wire a minimal Twilio at
+  Supabase → Auth → Providers → Phone for login codes, or use a Supabase "Send SMS" hook to Telnyx.
 - Set the real number in `src/lib/config.ts` (`ALFY_PHONE`).
 - Deploy the site (Vercel/Netlify) with the `PUBLIC_` env vars.
 
 ### Step 4 — Verify (see `docs/alfy-handoff.md` for the exact 4 calls to confirm)
-Composio tool slugs, the Composio connect body, Twilio signature check, Twilio send.
+Composio tool slugs, the Composio connect body, Telnyx Ed25519 signature check, Telnyx send.
 
 ### Step 5 — Smoke test
 Text the number → get a reply + an `Approve:` link → tap it → tap Approve → the action fires

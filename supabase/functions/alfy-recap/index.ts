@@ -12,7 +12,7 @@ import { createClient } from 'npm:@supabase/supabase-js';
 import { optionalEnv, requireEnv } from '../_shared/env.ts';
 import { mintLink } from '../_shared/links.ts';
 import { composeRecap, type RecapRow } from '../_shared/recap.ts';
-import { sendSms, TWILIO_FROM } from '../_shared/twilio.ts';
+import { sendSms, SMS_FROM } from '../_shared/sms.ts';
 
 const SUPABASE_URL = requireEnv('SUPABASE_URL');
 const SUPABASE_SERVICE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
 			const segments = await sendSms(person.recap_phone, body);
 			await supa.from('messages').insert({
 				user_id: person.recap_user_id,
-				from_phone: TWILIO_FROM,
+				from_phone: SMS_FROM,
 				direction: 'outbound',
 				body,
 				segments: segments || 1,

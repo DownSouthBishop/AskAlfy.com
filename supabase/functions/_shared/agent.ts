@@ -31,6 +31,34 @@ const ANTHROPIC_API_KEY = requireEnv('ANTHROPIC_API_KEY'); // platform pays infe
 // A runaway loop over a paid API is the expensive failure mode. Real turns use 3–6.
 const MAX_TURNS = 14;
 
+// SMS is stateless, so Alfy remembers nothing across texts unless we hand it the recent
+// exchange. Eight messages (~4 back-and-forths) is enough to follow a thread ("send it to
+// her" after "draft a note to Dana") without dragging the whole history — and every message
+// added here is re-sent each loop round, so the window is deliberately tight. The cost of
+// this (~$0.23/user/mo with caching) is modelled in scripts/unit-economics.mjs → memory().
+const HISTORY_LIMIT = 8;
+
+// The recent SMS log as an Anthropic conversation. Inbound = the person (user), outbound =
+// Alfy (assistant). The API requires the first turn to be `user`, so any leading assistant
+// turns (e.g. an onboarding text) are dropped.
+async function loadHistory(supa: Supa, userId: string): Promise<Anthropic.MessageParam[]> {
+	const { data } = await supa
+		.from('messages')
+		.select('direction, body')
+		.eq('user_id', userId)
+		.order('created_at', { ascending: false })
+		.limit(HISTORY_LIMIT);
+
+	const msgs: Anthropic.MessageParam[] = (data ?? [])
+		.reverse()
+		.map((r) => ({
+			role: (r.direction === 'inbound' ? 'user' : 'assistant') as 'user' | 'assistant',
+			content: String(r.body ?? ''),
+		}));
+	while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+	return msgs;
+}
+
 export type Supa = SupabaseClient;
 
 const SYSTEM_PROMPT = `You are Alfy — a warm, comfortably competent assistant a person texts.
@@ -293,7 +321,17 @@ export async function runAgent(
 ): Promise<AgentTurn> {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 	const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-	const messages: Anthropic.MessageParam[] = [{ role: 'user', content: message }];
+
+	// alfy-sms-inbound logs the current text BEFORE calling runAgent, so it's already the last
+	// row of history. The brief/recap pass a synthetic prompt that is NOT in the log. Append
+	// `message` only when it isn't already the final turn — this dedupes the SMS case and adds
+	// the synthetic prompt for the proactive case.
+	const history = await loadHistory(supa, userId);
+	const last = history[history.length - 1];
+	const messages: Anthropic.MessageParam[] =
+		last && last.role === 'user' && last.content === message
+			? history
+			: [...history, { role: 'user', content: message }];
 	const turn: TurnState = { queuedId: null, session: null, read: 0 };
 	let careful = opts.careful ?? false;
 
@@ -307,8 +345,17 @@ export async function runAgent(
 		const system = [SYSTEM_PROMPT, opts.extraSystem, turn.session?.assistivePrompt]
 			.filter(Boolean).join('\n\n');
 
+		// Prompt caching. The loop re-sends the whole prefix (tools + system + every prior
+		// message and tool result) each round, so without this the cost is quadratic in
+		// rounds — the single biggest lever in the cost model. Top-level cache_control
+		// auto-places the breakpoint on the last cacheable block, so the growing prefix caches
+		// incrementally: each round writes only its new increment (~1.25x) and reads the rest
+		// (~0.1x). Below a model's minimum cacheable prefix it's a silent no-op (Haiku needs
+		// ~4096 tokens), so early rounds pay full price until the tool results accumulate —
+		// which is exactly what scripts/unit-economics.mjs models.
 		const res = await anthropic.messages.create({
 			...(careful ? CAREFUL : FAST),
+			cache_control: { type: 'ephemeral' },
 			system,
 			tools: TOOLS,
 			messages,

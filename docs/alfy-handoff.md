@@ -22,7 +22,7 @@ Do these in order — later steps need ids from earlier ones.
 | 1 | **Supabase** — a fresh project, not Prymal's | project ref, URL, anon key, service-role key |
 | 2 | **Anthropic** | one API key |
 | 3 | **Composio** — one auth config for Gmail, one for Calendar | API key + two `ac_…` auth-config ids |
-| 4 | **Twilio** — buy a number, register A2P 10DLC | account SID, auth token, the number (E.164) |
+| 4 | **Telnyx** — buy a number, register A2P 10DLC, grab the account public key | API key, public key (base64), the number (E.164) |
 
 > **Use Composio-MANAGED auth configs.** Composio owns the OAuth apps, so Alfy doesn't need
 > a Google Cloud OAuth client and doesn't carry Google's CASA assessment for the restricted
@@ -61,7 +61,7 @@ supabase secrets set \
   SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
   ANTHROPIC_API_KEY=... \
   COMPOSIO_API_KEY=... COMPOSIO_AUTHCFG_GMAIL=... COMPOSIO_AUTHCFG_CALENDAR=... \
-  TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=... \
+  TELNYX_API_KEY=... TELNYX_PUBLIC_KEY=... TELNYX_PHONE_NUMBER=... \
   PUBLIC_APP_URL=https://askalfy.com
 ```
 
@@ -69,7 +69,7 @@ supabase secrets set \
 not sessions, and must skip the JWT gate:
 ```bash
 supabase functions deploy alfy-agent alfy-approve alfy-connect
-supabase functions deploy alfy-sms-inbound --no-verify-jwt   # caller is Twilio (signature-authenticated)
+supabase functions deploy alfy-sms-inbound --no-verify-jwt   # caller is Telnyx (Ed25519-signature-authenticated)
 supabase functions deploy alfy-link       --no-verify-jwt    # caller has no session yet — that's the point
 supabase functions deploy alfy-brief      --no-verify-jwt    # caller is pg_cron (x-runner-key)
 supabase functions deploy alfy-recap      --no-verify-jwt    # same
@@ -98,11 +98,16 @@ covers every timezone. The brief goes at `brief_hour` (default 7); the note goes
 before `quiet_hours_start` (default 21, so 20:00) and therefore can never land inside quiet
 hours. Verify with `select * from cron.job;`.
 
-**5 — Twilio → Supabase**
-- Twilio console → the number → Messaging → inbound webhook → the `alfy-sms-inbound`
-  function URL, method POST. **Copy it exactly** — the signature check hashes the URL, so
-  a trailing-slash difference fails every message with a 403.
-- Supabase → Auth → Providers → Phone → Twilio (so typed-login OTP codes send).
+**5 — Telnyx → Supabase**
+- Telnyx portal → Messaging profile → inbound webhook → the `alfy-sms-inbound` function URL,
+  method POST. Telnyx signs `${timestamp}|${rawBody}` with Ed25519; `TELNYX_PUBLIC_KEY`
+  (portal → Account → Keys, the public key) verifies it, so a URL mismatch does NOT break the
+  check the way Twilio's URL-hashed signature did — but point it at the exact function URL anyway.
+- **Login OTP is a SEPARATE provider.** Supabase Auth's built-in phone providers do not
+  include Telnyx (Twilio, MessageBird, Vonage, Textlocal). Two options: keep a minimal Twilio
+  account wired at Supabase → Auth → Providers → Phone just for login codes, OR route OTP
+  through Telnyx with a Supabase "Send SMS" auth hook. The agent's messaging (this migration)
+  is fully Telnyx; only the typed-login OTP touches this second provider.
 
 **6 — The number** → turns `ALFY_PHONE` green
 ```

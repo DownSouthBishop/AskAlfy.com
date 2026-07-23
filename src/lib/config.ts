@@ -1,5 +1,5 @@
 // The product IS this number — every CTA (hero, footer, QR code) reads it from here.
-// Set it once to the provisioned Twilio number in E.164.
+// Set it once to the provisioned Telnyx number in E.164.
 //
 // PLACEHOLDER_PHONE is what `npm run doctor` and the prebuild check look for: shipping
 // the placeholder puts a dead sms: link on every call to action, and the site would
