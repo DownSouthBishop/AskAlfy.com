@@ -11,6 +11,7 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
+import { getComposioTools, isComposioTool } from './composio.ts';
 import { executeAction } from './executors.ts';
 import {
 	calendarGetAvailability,
@@ -993,8 +994,20 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 				action_type: input.action_type as string,
 				action_payload: (input.action_payload as Record<string, unknown>) ?? {},
 			});
-		default:
+		default: {
+			// A connected-app tool (Slack, Notion, GitHub, Outlook, ...) from _shared/composio.ts.
+			// Same "asks first" rule as everything else: this queues it, it does not run it —
+			// only alfy-approve's executor (executors.ts) calls executeComposioTool, after a yes.
+			if (isComposioTool(name)) {
+				return await queue(supa, userId, {
+					kind: 'App',
+					summary: name.replace(/_/g, ' ').toLowerCase(),
+					action_type: `composio:${name}`,
+					action_payload: input,
+				});
+			}
 			throw new Error(`Unknown tool: ${name}`);
+		}
 	}
 }
 
@@ -1003,13 +1016,16 @@ export async function runAgent(userId: string, message: string, history: Anthrop
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 	const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 	const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: message }];
+	// [] while composioEnabled is false (see _shared/composio.ts) — TOOLS is unchanged then.
+	const composioTools = await getComposioTools(userId);
+	const tools = composioTools.length ? [...TOOLS, ...composioTools] : TOOLS;
 
 	while (true) {
 		const res = await anthropic.messages.create({
 			model: 'claude-haiku-4-5-20251001',
 			max_tokens: 1024,
 			system: SYSTEM_PROMPT,
-			tools: TOOLS,
+			tools,
 			messages,
 		});
 

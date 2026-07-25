@@ -14,6 +14,9 @@ import {
 	connectGoogle,
 	loadBilling,
 	startCheckout,
+	loadComposioStatus,
+	connectComposioApp,
+	disconnectComposioApp,
 	breakdown,
 	type QueueItem,
 	type HandledItem,
@@ -21,6 +24,7 @@ import {
 	type TrustItem,
 	type Range,
 	type BillingStatus,
+	type ComposioStatus,
 } from '../lib/queue';
 
 // Reads Supabase when configured (src/lib/supabase.ts); otherwise renders demo data.
@@ -30,6 +34,13 @@ type Tab = 'today' | 'handled' | 'knows';
 const WATCHING = [
 	'Wifi bill is due Friday — reminder set for Thursday morning',
 	'Airline refund from March — checking daily, day 6',
+];
+
+const COMPOSIO_APPS: { slug: string; name: string }[] = [
+	{ slug: 'slack', name: 'Slack' },
+	{ slug: 'notion', name: 'Notion' },
+	{ slug: 'github', name: 'GitHub' },
+	{ slug: 'outlook', name: 'Outlook' },
 ];
 
 const reduceMotion =
@@ -149,6 +160,8 @@ export default function AlfyDashboard() {
 	const [people, setPeople] = useState<PersonItem[]>(DEMO_PEOPLE);
 	const [trust, setTrust] = useState<TrustItem[]>(DEMO_TRUST);
 	const [billing, setBilling] = useState<BillingStatus | null>(null);
+	const [composioStatus, setComposioStatus] = useState<ComposioStatus | null>(null);
+	const [composioActing, setComposioActing] = useState<string | null>(null);
 
 	// Hydrate from Supabase when it's configured; demo data shows until then.
 	useEffect(() => {
@@ -164,6 +177,27 @@ export default function AlfyDashboard() {
 	useEffect(() => {
 		loadBilling().then(setBilling);
 	}, []);
+	useEffect(() => {
+		loadComposioStatus().then(setComposioStatus);
+		const params = new URLSearchParams(window.location.search);
+		if (params.has('connected_app')) {
+			params.delete('connected_app');
+			const clean = window.location.pathname + (params.toString() ? `?${params}` : '');
+			window.history.replaceState({}, '', clean);
+		}
+	}, []);
+
+	function handleComposioConnect(toolkit: string) {
+		setComposioActing(toolkit);
+		void connectComposioApp(toolkit);
+	}
+
+	async function handleComposioDisconnect(toolkit: string) {
+		setComposioActing(toolkit);
+		await disconnectComposioApp(toolkit);
+		setComposioStatus((s) => (s ? { ...s, connected: s.connected.filter((t) => t !== toolkit) } : s));
+		setComposioActing(null);
+	}
 
 	function handleRevokeTrust(id: string | number) {
 		setTrust((t) => t.filter((i) => i.id !== id));
@@ -449,6 +483,37 @@ export default function AlfyDashboard() {
 									Connect Google
 								</button>
 							</li>
+							{COMPOSIO_APPS.map((app) => {
+								const available = !!composioStatus?.enabled && composioStatus.toolkits.includes(app.slug);
+								const connected = !!composioStatus?.connected.includes(app.slug);
+								const acting = composioActing === app.slug;
+								return (
+									<li key={app.slug} className="flex items-center justify-between py-3">
+										<span className="text-espresso">{app.name}</span>
+										{!available ? (
+											<span className="text-small text-muted">coming soon</span>
+										) : connected ? (
+											<button
+												type="button"
+												onClick={() => void handleComposioDisconnect(app.slug)}
+												disabled={acting}
+												className="cursor-pointer text-small font-medium text-secondary hover:text-espresso disabled:opacity-50"
+											>
+												{acting ? 'disconnecting…' : 'Disconnect'}
+											</button>
+										) : (
+											<button
+												type="button"
+												onClick={() => handleComposioConnect(app.slug)}
+												disabled={acting}
+												className="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso disabled:opacity-50"
+											>
+												{acting ? 'connecting…' : `Connect ${app.name}`}
+											</button>
+										)}
+									</li>
+								);
+							})}
 							<li className="flex items-center justify-between py-3">
 								<div>
 									<span className="text-espresso">Billing</span>

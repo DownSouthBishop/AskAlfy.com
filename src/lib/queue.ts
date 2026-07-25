@@ -73,7 +73,8 @@ export async function loadHandled(range: Range): Promise<HandledItem[]> {
 export async function approveItem(id: string | number): Promise<void> {
 	if (!supabase) return;
 	await supabase.from('approval_queue').update({ status: 'approved', decided_at: new Date().toISOString() }).eq('id', id);
-	// Flip first, then fire execution (alfy-approve replays the action via Composio + confirms by SMS).
+	// Flip first, then fire execution (alfy-approve replays the action — Google APIs, or
+	// Composio for a connected app like Slack — and confirms by SMS).
 	await supabase.functions.invoke('alfy-approve', { body: { approval_id: id } });
 }
 
@@ -98,6 +99,37 @@ export function connectGoogle(): void {
 		state: 'google',
 	});
 	window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+export interface ComposioStatus {
+	enabled: boolean;
+	toolkits: string[];
+	connected: string[];
+}
+
+// null in demo mode or if the call fails — callers render every app as "coming soon"
+// rather than break the Settings panel.
+export async function loadComposioStatus(): Promise<ComposioStatus | null> {
+	if (!supabase) return null;
+	const { data, error } = await supabase.functions.invoke('alfy-composio-connect', { body: { action: 'status' } });
+	if (error || !data) return null;
+	return data as ComposioStatus;
+}
+
+// Starts a hosted Composio OAuth flow and redirects straight to it, same shape as
+// connectGoogle() above — the callback lands back on this same page.
+export async function connectComposioApp(toolkit: string): Promise<void> {
+	if (!supabase) return;
+	const redirectUri = `${window.location.origin}${window.location.pathname}?connected_app=${toolkit}`;
+	const { data } = await supabase.functions.invoke('alfy-composio-connect', {
+		body: { action: 'connect', toolkit, redirect_uri: redirectUri },
+	});
+	if (data?.redirectUrl) window.location.href = data.redirectUrl;
+}
+
+export async function disconnectComposioApp(toolkit: string): Promise<void> {
+	if (!supabase) return;
+	await supabase.functions.invoke('alfy-composio-connect', { body: { action: 'disconnect', toolkit } });
 }
 
 export interface PersonItem {

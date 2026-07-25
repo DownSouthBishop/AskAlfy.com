@@ -7,6 +7,7 @@
 // (itself a yes, just a durable one). Nothing here decides whether to ask — that's upstream.
 
 import type { createClient } from 'npm:@supabase/supabase-js';
+import { executeComposioTool } from './composio.ts';
 import {
 	calendarCreateEvent,
 	calendarDeleteEvent,
@@ -228,6 +229,13 @@ export async function executeAction(
 			return {};
 		}
 		default:
+			// composio:<toolName> — a connected-app action (Slack, Notion, GitHub, Outlook, ...)
+			// queued by _shared/agent.ts's isComposioTool branch. This is the only place it
+			// actually runs, same rule as every Google executor above: only after a yes.
+			if (actionType.startsWith('composio:')) {
+				await executeComposioTool(userId, actionType.slice('composio:'.length), actionPayload);
+				return {};
+			}
 			throw new UnknownActionError(`no executor for '${actionType}' yet — nothing was performed`);
 	}
 }
