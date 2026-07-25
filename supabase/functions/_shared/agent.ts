@@ -11,7 +11,14 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
-import { getComposioTools, isComposioTool } from './composio.ts';
+import {
+	composioEnabled,
+	composioToolkits,
+	disconnectComposioToolkit,
+	getComposioTools,
+	initiateComposioConnection,
+	isComposioTool,
+} from './composio.ts';
 import { executeAction } from './executors.ts';
 import {
 	calendarGetAvailability,
@@ -30,6 +37,7 @@ import {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')!; // platform pays inference (consumer SMS)
+const APP_URL = Deno.env.get('PUBLIC_APP_URL') ?? 'https://askalfy.com';
 
 const SYSTEM_PROMPT = `You are Alfy — a warm, comfortably competent assistant a person texts.
 
@@ -52,7 +60,9 @@ RULES — never break these:
    grant_standing_permission after they clearly say yes in this same exchange; never propose
    and grant in the same turn without an answer. Each text starts fresh with no memory of
    earlier ones, so don't lean on this — mention it lightly when it's naturally relevant,
-   don't turn it into a recurring pitch.`;
+   don't turn it into a recurring pitch.
+7. If connect_app returns a link, put that exact link in your reply — texting it is the only
+   way the person can finish connecting. There's no dashboard for this; it all happens here.`;
 
 const TOOLS: Anthropic.Tool[] = [
 	{
@@ -506,6 +516,24 @@ const TOOLS: Anthropic.Tool[] = [
 				description: { type: 'string', description: 'Plain line for the dashboard Trust list, e.g. "Adds tasks you ask for without checking first"' },
 			},
 			required: ['action_type', 'description'],
+		},
+	},
+	{
+		name: 'connect_app',
+		description: "Start connecting an outside app (slack, notion, github, or outlook) so Alfy can use it for the person. Returns a link — put it in your reply exactly as given so they can tap it to finish. If they name an app that isn't set up yet, say so plainly rather than pretending it worked.",
+		input_schema: {
+			type: 'object',
+			properties: { app: { type: 'string', enum: ['slack', 'notion', 'github', 'outlook'] } },
+			required: ['app'],
+		},
+	},
+	{
+		name: 'disconnect_app',
+		description: 'Disconnect an outside app the person no longer wants Alfy to use.',
+		input_schema: {
+			type: 'object',
+			properties: { app: { type: 'string', enum: ['slack', 'notion', 'github', 'outlook'] } },
+			required: ['app'],
 		},
 	},
 	{
@@ -985,6 +1013,23 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 			}).select('id').single();
 			if (error) throw new Error(error.message);
 			return { granted: true, id: data?.id };
+		}
+		case 'connect_app': {
+			const app = String(input.app).toLowerCase();
+			if (!composioEnabled || !composioToolkits().includes(app)) {
+				return { error: `${app} isn't set up to connect yet.` };
+			}
+			try {
+				const redirectUrl = await initiateComposioConnection(userId, app, `${APP_URL}/auth/app-connected?app=${app}`);
+				return { redirectUrl };
+			} catch (err) {
+				return { error: `Could not start connecting ${app}: ${(err as Error).message}` };
+			}
+		}
+		case 'disconnect_app': {
+			const app = String(input.app).toLowerCase();
+			await disconnectComposioToolkit(userId, app);
+			return { disconnected: true };
 		}
 		case 'queue_action':
 			return await queue(supa, userId, {
