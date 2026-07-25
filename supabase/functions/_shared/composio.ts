@@ -1,25 +1,23 @@
-// Composio bridge — connects Alfy to apps beyond Google (Slack, Notion, GitHub,
-// Outlook, ...) through Composio's managed tool catalog and OAuth, both for
-// running tools (getComposioTools/executeComposioTool) and for starting/checking/
-// ending a user's connection to a toolkit (initiateComposioConnection/
-// listComposioConnections/disconnectComposioToolkit — wired to alfy-composio-
-// connect and the "Connected apps" rows in the dashboard's Settings panel).
-// Feature-flagged: without COMPOSIO_API_KEY set, everything here no-ops and the
-// chat loop runs exactly as before.
+// Composio bridge — the ONLY integration layer left for outside apps, including Google
+// (Gmail/Calendar/Drive/Docs/Sheets via the bundled 'googlesuper' toolkit) as well as
+// Slack, Notion, GitHub, Outlook, Linear, Trello, Asana, HubSpot, Discord, Zoom. Covers
+// running tools (getComposioTools/executeComposioTool/isComposioTool/
+// isReadOnlyComposioTool) and starting/checking/ending a connection to a toolkit
+// (initiateComposioConnection/listComposioConnections/disconnectComposioToolkit — wired
+// to the connect_app/disconnect_app agent tools, texted to the person, not a dashboard).
+// Feature-flagged: without COMPOSIO_API_KEY set, everything here no-ops and the chat loop
+// runs with no outside-app tools at all.
 //
-// "Alfy asks first" still applies to connected apps: unlike PrymalAI-dashboard's
-// prymal-chat, _shared/agent.ts does NOT call executeComposioTool directly from
-// the tool loop — a composio tool call goes through the same queue()/approval_queue
-// path as every other outbound action, and only alfy-approve's executor (via
-// executors.ts) calls executeComposioTool, after a yes. See _shared/agent.ts and
-// _shared/executors.ts's composio: prefix handling.
+// "Alfy asks first" still applies: _shared/agent.ts only calls executeComposioTool
+// directly for read-only tools (isReadOnlyComposioTool — reading is always fine, rule 1).
+// Everything else goes through the same queue()/approval_queue path as every other
+// outbound action, and only alfy-approve's executor (via executors.ts) calls
+// executeComposioTool for a write, after a yes.
 //
-// Sovereignty note (WIG): Composio is a third-party SaaS that holds user OAuth
-// tokens for connected apps. Approved by founder instruction 2026-07-19; keep
-// the flag off until the cost/trust review is signed off. This module is built
-// and ready but stays inert (composioEnabled is false) until COMPOSIO_API_KEY/
-// COMPOSIO_TOOLKITS/COMPOSIO_AUTHCFG_* are actually set as secrets — do not set
-// them without the founder's sign-off.
+// Sovereignty note (WIG): Composio is a third-party SaaS that holds user OAuth tokens —
+// now including Gmail/Calendar/Drive, not just secondary apps. Approved by founder
+// instruction 2026-07-19 pending a cost/trust review; only set COMPOSIO_API_KEY/
+// COMPOSIO_TOOLKITS/COMPOSIO_AUTHCFG_* live once that review is actually signed off.
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 
@@ -62,6 +60,18 @@ export async function getComposioTools(userId: string): Promise<Anthropic.Tool[]
 
 export function isComposioTool(name: string): boolean {
 	return composioToolNames.has(name);
+}
+
+// Naming heuristic: Composio tool names are TOOLKIT_VERB_NOUN (e.g. GMAIL_FETCH_EMAILS,
+// GMAIL_SEND_EMAIL, GOOGLECALENDAR_FIND_EVENT, GOOGLECALENDAR_CREATE_EVENT). A read verb
+// anywhere in the name means it's safe to run immediately with no approval — nothing
+// leaves the person's account. Not perfect (a handful of tools may be misnamed relative
+// to this), but it's what keeps "check my email" instant instead of turning every read
+// into a queue-and-approve round trip once Gmail/Calendar move onto the generic bridge.
+const READ_VERBS = ['GET', 'FETCH', 'LIST', 'SEARCH', 'FIND', 'READ', 'VIEW'];
+export function isReadOnlyComposioTool(name: string): boolean {
+	const words = new Set(name.toUpperCase().split('_'));
+	return READ_VERBS.some((verb) => words.has(verb));
 }
 
 export async function executeComposioTool(

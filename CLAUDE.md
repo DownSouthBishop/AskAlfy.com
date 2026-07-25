@@ -1,17 +1,20 @@
 # 🚀 Finishing Alfy — START HERE
 
-> **You're the finishing engineer.** A hand-rolled Google OAuth + Gmail/Calendar/Tasks/Drive/
-> Docs/Sheets REST backend, standing instructions + a cron automation runner, and Stripe
-> billing all replaced/extended AskAlfy's original Composio-only scaffold (ported from
-> PrymalAI-dashboard — see `docs/prymal-port-reference.md` for the full spec and
-> `docs/alfy-handoff.md` for the exact VERIFY list, phase by phase). A fresh Supabase project
-> (`askalfy`) is already provisioned and migrated. What's left is a Google Cloud OAuth
-> client, Twilio, Anthropic, Stripe, and deploy.
+> **You're the finishing engineer.** Every outside app — Google (Gmail/Calendar/Drive/
+> Docs/Sheets, bundled as Composio's 'googlesuper' toolkit), Slack, Notion, GitHub, Outlook,
+> Linear, Trello, Asana, HubSpot, Discord, Zoom — connects through Composio
+> (`supabase/functions/_shared/composio.ts`), triggered by texting "connect <app>" (the
+> `connect_app` agent tool), never a dashboard button. Standing instructions + a cron
+> automation runner and Stripe billing round out the backend (ported from PrymalAI-dashboard
+> — see `docs/prymal-port-reference.md` for the full spec and `docs/alfy-handoff.md` for the
+> VERIFY list; both predate the Composio-for-everything move, so treat their Google-OAuth-
+> specific steps as historical). A fresh Supabase project (`askalfy`) is already provisioned
+> and migrated. What's left is Composio, Twilio, Anthropic, Stripe, and deploy.
 
 ### What's already done (don't rebuild it)
 Marketing site, the 3-tab dashboard (Today / Handled / Alfy knows), phone-OTP login, the
 `/a` magic-link handler, the DB schema (`supabase/migrations/0001`-`0007_*.sql`, applied to
-the live `askalfy` Supabase project), and nine edge functions (`supabase/functions/alfy-*`,
+the live `askalfy` Supabase project), and the edge functions (`supabase/functions/alfy-*`,
 sharing logic via `supabase/functions/_shared/`). It runs on demo data right now with zero
 setup.
 
@@ -24,8 +27,10 @@ npm run dev          # open the printed URL → /app shows the dashboard on demo
 ### Step 2 — Make the remaining accounts (the only thing code can't do)
 1. **Supabase** — done: the `askalfy` project exists and is migrated. Copy its URL + anon key.
 2. **Twilio** — buy a phone number + register A2P 10DLC.
-3. **Google Cloud OAuth client** — a Web application client; register redirect URI
-   `${PUBLIC_APP_URL}/auth/google-callback`. Replaces Composio for Gmail/Calendar.
+3. **Composio** — an API key, plus one auth config per toolkit you want live (Google via
+   'googlesuper', Slack, Notion, GitHub, Outlook, ...). Each auth config needs its ID set as
+   `COMPOSIO_AUTHCFG_<TOOLKIT>`. See the sovereignty note in `_shared/composio.ts` — this
+   stays off until the founder's cost/trust review is signed off.
 4. **Anthropic** — one API key.
 5. **Stripe** — an account, two Products with recurring Prices (Alfy / Alfy Plus), and a
    webhook endpoint registered against `alfy-stripe-webhook`'s deployed URL. See
@@ -37,22 +42,24 @@ cp .env.local.example .env.local        # fill PUBLIC_SUPABASE_URL + PUBLIC_SUPA
 supabase link --project-ref kpybomnunyhazkenyoeb
 # set the backend secrets (names listed in .env.local.example):
 supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
-  ANTHROPIC_API_KEY=... GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... \
+  ANTHROPIC_API_KEY=... \
+  COMPOSIO_API_KEY=... COMPOSIO_TOOLKITS=googlesuper,slack,notion,github,outlook,... \
+  COMPOSIO_AUTHCFG_GOOGLESUPER=... COMPOSIO_AUTHCFG_SLACK=... # one per toolkit in COMPOSIO_TOOLKITS \
   TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=... \
   INTERNAL_FUNCTION_SECRET=...   # must match the secret baked into the live cron.schedule() call, see docs/alfy-handoff.md \
   STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... STRIPE_PRICE_ALFY=... STRIPE_PRICE_ALFY_PLUS=...
-supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-connect alfy-automation-runner alfy-digest alfy-stripe-checkout alfy-stripe-webhook
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-composio-connect alfy-automation-runner alfy-digest alfy-stripe-checkout alfy-stripe-webhook
 ```
 Then:
 - **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).
 - **Twilio** → point the number's inbound webhook at the `alfy-sms-inbound` function URL.
-- Set the real number in `src/lib/config.ts` (`ALFY_PHONE`) and the real
-  `GOOGLE_CLIENT_ID` (public, safe to hardcode) once the GCP OAuth client exists.
+- Set the real number in `src/lib/config.ts` (`ALFY_PHONE`).
 - Deploy the site (Vercel/Netlify) with the `PUBLIC_` env vars.
 
 ### Step 4 — Verify (see `docs/alfy-handoff.md` for the exact calls to confirm)
-Google OAuth token exchange + refresh, Gmail send/read + Calendar create/read REST calls,
-Twilio signature check, Twilio send.
+Composio connect flow (text "connect slack" → get a link → tap it → connected), a connected
+app's read tools returning instantly and its write tools queuing for approval, Twilio
+signature check, Twilio send.
 
 ### Step 5 — Smoke test
 Text the number → get a reply + an `Approve:` link → tap it → tap Approve → the action fires

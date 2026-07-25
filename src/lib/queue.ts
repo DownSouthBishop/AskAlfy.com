@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { GOOGLE_CLIENT_ID, GOOGLE_SCOPES } from './config';
 
 // Data layer for the dashboard's three tabs. Reads Supabase when configured;
 // falls back to demo data so a fresh fork renders with zero setup.
@@ -73,32 +72,14 @@ export async function loadHandled(range: Range): Promise<HandledItem[]> {
 export async function approveItem(id: string | number): Promise<void> {
 	if (!supabase) return;
 	await supabase.from('approval_queue').update({ status: 'approved', decided_at: new Date().toISOString() }).eq('id', id);
-	// Flip first, then fire execution (alfy-approve replays the action — Google APIs, or
-	// Composio for a connected app like Slack — and confirms by SMS).
+	// Flip first, then fire execution (alfy-approve replays the action through Composio and
+	// confirms by SMS — every connected app, including Google, goes through the same path).
 	await supabase.functions.invoke('alfy-approve', { body: { approval_id: id } });
 }
 
 export async function skipItem(id: string | number): Promise<void> {
 	if (!supabase) return;
 	await supabase.from('approval_queue').update({ status: 'skipped', decided_at: new Date().toISOString() }).eq('id', id);
-}
-
-// Builds the Google consent-screen URL client-side (GOOGLE_CLIENT_ID is public) and
-// redirects straight to it, asking for every scope Alfy's tools use in one screen. The
-// callback page (/auth/google-callback) hands the returned code to alfy-connect, which
-// does the actual token exchange.
-export function connectGoogle(): void {
-	const redirectUri = `${window.location.origin}/auth/google-callback`;
-	const params = new URLSearchParams({
-		client_id: GOOGLE_CLIENT_ID,
-		redirect_uri: redirectUri,
-		response_type: 'code',
-		scope: GOOGLE_SCOPES.join(' '),
-		access_type: 'offline',
-		prompt: 'consent',
-		state: 'google',
-	});
-	window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
 export interface PersonItem {

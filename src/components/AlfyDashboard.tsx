@@ -11,7 +11,6 @@ import {
 	revokeTrust,
 	approveItem,
 	skipItem,
-	connectGoogle,
 	loadBilling,
 	startCheckout,
 	breakdown,
@@ -441,13 +440,7 @@ export default function AlfyDashboard() {
 						<ul className="mt-3 divide-y divide-hairline text-body">
 							<li className="flex items-center justify-between py-3">
 								<span className="text-espresso">Connections</span>
-								<button
-									type="button"
-									onClick={() => connectGoogle()}
-									className="cursor-pointer text-small font-medium text-fern underline decoration-fern/40 underline-offset-4 hover:text-espresso"
-								>
-									Connect Google
-								</button>
+								<span className="text-small text-secondary">just text "connect [app]"</span>
 							</li>
 							<li className="flex items-center justify-between py-3">
 								<div>

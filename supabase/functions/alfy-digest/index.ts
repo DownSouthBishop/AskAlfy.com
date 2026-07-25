@@ -12,7 +12,6 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { checkAccess } from '../_shared/billing.ts';
-import { calendarListEvents, getFreshToken } from '../_shared/google.ts';
 import { sendSms, TWILIO_FROM_NUMBER } from '../_shared/twilio.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -70,9 +69,6 @@ function isQuietHour(hour: number, start: number, end: number): boolean {
 }
 
 async function buildMorningBrief(supa: ReturnType<typeof createClient>, userId: string, timeZone: string, now: Date): Promise<string> {
-	const dayStart = startOfLocalDay(now, timeZone);
-	const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-
 	const [pendingCountRes, pendingRowsRes, instructionsRes] = await Promise.all([
 		supa.from('approval_queue').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'pending'),
 		supa.from('approval_queue').select('summary').eq('user_id', userId).eq('status', 'pending').order('created_at', { ascending: false }).limit(2),
@@ -82,22 +78,12 @@ async function buildMorningBrief(supa: ReturnType<typeof createClient>, userId: 
 	const pendingRows = pendingRowsRes.data ?? [];
 	const instructions = instructionsRes.data ?? [];
 
-	let eventsLine = '';
-	const token = await getFreshToken(supa, userId, 'calendar');
-	if (token) {
-		try {
-			const events = await calendarListEvents(token, { timeMin: dayStart.toISOString(), timeMax: dayEnd.toISOString(), maxResults: 3 });
-			if (events.length > 0) {
-				const first = events[0] as { summary?: string; start?: { dateTime?: string } };
-				const time = first.start?.dateTime
-					? new Date(first.start.dateTime).toLocaleTimeString('en-US', { timeZone, hour: 'numeric', minute: '2-digit' })
-					: 'today';
-				eventsLine = ` ${events.length} on your calendar today, starting with ${first.summary ?? 'something'} at ${time}.`;
-			}
-		} catch {
-			// Best-effort — a brief still goes out even if the calendar read fails.
-		}
-	}
+	// No calendar line for now: Calendar reads go through Composio's dynamic per-user tool
+	// set (see _shared/composio.ts) rather than a fixed REST call, so there's no single
+	// hardcoded function to call from a cron job without a live Composio account to confirm
+	// the exact tool name/schema against. The brief still goes out either way — this was
+	// always presented as best-effort, never load-bearing.
+	const eventsLine = '';
 
 	const openingLine = pendingCount === 0
 		? "Morning. Nothing needs your yes right now."
