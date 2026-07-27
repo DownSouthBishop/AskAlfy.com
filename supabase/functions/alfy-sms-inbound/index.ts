@@ -7,7 +7,7 @@
 // message.received is actionable here; everything else is acknowledged and dropped.
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { runAgent } from '../_shared/agent.ts';
+import { loadHistory, runAgent } from '../_shared/agent.ts';
 import {
 	checkAccess,
 	getOrCreateStripeCustomer,
@@ -84,6 +84,9 @@ Deno.serve(async (req) => {
 		return new Response(null, { status: 204 });
 	}
 
+	// Read the conversation before logging this text, so it isn't in its own history.
+	const history = await loadHistory(supa, phone.user_id);
+
 	// Dedupe: unique provider_msg_id means a retry just no-ops here.
 	const { error: dupe } = await supa.from('messages').insert({ user_id: phone.user_id, from_phone: from, direction: 'inbound', body, provider_msg_id: sid });
 	if (dupe) return new Response(null, { status: 200 }); // already processed
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
 	}
 
 	// Run the agent (inline now; enqueue at scale).
-	const reply = await runAgent(phone.user_id, body);
+	const reply = await runAgent(phone.user_id, body, history);
 	if (access.plan === 'trial') await recordTrialAction(supa, phone.user_id);
 
 	// If the turn queued anything, mint a one-time approval link and append it.

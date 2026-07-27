@@ -397,6 +397,34 @@ async function handleTool(name: string, input: Record<string, unknown>, supa: Re
 	}
 }
 
+const HISTORY_LIMIT = 8;
+
+// The last few texts, oldest first, so a reply like "yes, that one" still means something.
+// Call this BEFORE logging the current inbound message, or it comes back as history too.
+// Only alfy-sms-inbound uses it — a cron-triggered automation run has no conversation.
+export async function loadHistory(supa: ReturnType<typeof createClient>, userId: string): Promise<Anthropic.MessageParam[]> {
+	const { data } = await supa
+		.from('messages')
+		.select('direction, body')
+		.eq('user_id', userId)
+		.order('created_at', { ascending: false })
+		.limit(HISTORY_LIMIT);
+
+	const msgs: Anthropic.MessageParam[] = (data ?? [])
+		.reverse()
+		.map((r) => ({
+			role: (r.direction === 'inbound' ? 'user' : 'assistant') as 'user' | 'assistant',
+			content: String(r.body ?? ''),
+		}));
+	// The API rejects a conversation that opens on an assistant turn.
+	while (msgs.length && msgs[0].role !== 'user') msgs.shift();
+	return msgs;
+}
+
+// A wedged model that keeps calling tools would otherwise loop until the function times
+// out, billing every round. Ten is far past any real turn.
+const MAX_ROUNDS = 10;
+
 // Runs one inbound message through the loop; returns Alfy's reply text.
 export async function runAgent(userId: string, message: string, history: Anthropic.MessageParam[] = []): Promise<string> {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -406,10 +434,17 @@ export async function runAgent(userId: string, message: string, history: Anthrop
 	const composioTools = await getComposioTools(userId);
 	const tools = composioTools.length ? [...TOOLS, ...composioTools] : TOOLS;
 
-	while (true) {
+	for (let round = 0; ; round++) {
+		// Prompt caching. Each round re-sends the whole prefix (tools + system + every prior
+		// message and tool result), so without this the cost is quadratic in rounds. A
+		// top-level cache_control puts the breakpoint on the last cacheable block, so the
+		// prefix caches incrementally: each round writes only its new increment (~1.25x) and
+		// reads the rest (~0.1x). Below Haiku's ~4096-token minimum it's a silent no-op, so
+		// early rounds still pay full price.
 		const res = await anthropic.messages.create({
 			model: 'claude-haiku-4-5-20251001',
 			max_tokens: 1024,
+			cache_control: { type: 'ephemeral' },
 			system: SYSTEM_PROMPT,
 			tools,
 			messages,
@@ -432,5 +467,9 @@ export async function runAgent(userId: string, message: string, history: Anthrop
 		}
 		messages.push({ role: 'assistant', content: res.content });
 		messages.push({ role: 'user', content: results });
+
+		if (round >= MAX_ROUNDS) {
+			return "I got partway through that and got stuck. Text me again and I'll try a different way. — A";
+		}
 	}
 }
