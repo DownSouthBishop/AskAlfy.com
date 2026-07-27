@@ -26,7 +26,9 @@ npm run dev          # open the printed URL → /app shows the dashboard on demo
 
 ### Step 2 — Make the remaining accounts (the only thing code can't do)
 1. **Supabase** — done: the `askalfy` project exists and is migrated. Copy its URL + anon key.
-2. **Twilio** — buy a phone number + register A2P 10DLC.
+2. **Telnyx** — done: number `+1-561-813-7525` is provisioned. Still need an API v2 key, the
+   account's public key (for webhook signature verification), and A2P 10DLC campaign
+   registration for the messaging profile.
 3. **Composio** — an API key, plus one auth config per toolkit you want live (Google via
    'googlesuper', Slack, Notion, GitHub, Outlook, ...). Each auth config needs its ID set as
    `COMPOSIO_AUTHCFG_<TOOLKIT>`. See the sovereignty note in `_shared/composio.ts` — this
@@ -45,21 +47,25 @@ supabase secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROL
   ANTHROPIC_API_KEY=... \
   COMPOSIO_API_KEY=... COMPOSIO_TOOLKITS=googlesuper,slack,notion,github,outlook,... \
   COMPOSIO_AUTHCFG_GOOGLESUPER=... COMPOSIO_AUTHCFG_SLACK=... # one per toolkit in COMPOSIO_TOOLKITS \
-  TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_PHONE_NUMBER=... \
+  TELNYX_API_KEY=... TELNYX_PHONE_NUMBER=+15618137525 TELNYX_PUBLIC_KEY=... \
+  SEND_SMS_HOOK_SECRET=...       # from Auth -> Hooks -> Send SMS, see .env.local.example \
   INTERNAL_FUNCTION_SECRET=...   # must match the secret baked into the live cron.schedule() call, see docs/alfy-handoff.md \
   STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... STRIPE_PRICE_ALFY=... STRIPE_PRICE_ALFY_PLUS=...
-supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-composio-connect alfy-automation-runner alfy-digest alfy-stripe-checkout alfy-stripe-webhook
+supabase functions deploy alfy-agent alfy-sms-inbound alfy-link alfy-approve alfy-composio-connect alfy-automation-runner alfy-digest alfy-stripe-checkout alfy-stripe-webhook alfy-send-sms-hook
 ```
 Then:
-- **Supabase → Auth → Providers → Phone → Twilio** (so login codes send).
-- **Twilio** → point the number's inbound webhook at the `alfy-sms-inbound` function URL.
-- Set the real number in `src/lib/config.ts` (`ALFY_PHONE`).
+- **Supabase → Auth → Hooks → Send SMS** → point at the deployed `alfy-send-sms-hook` URL
+  (Telnyx isn't one of Supabase Auth's built-in SMS providers, so phone-login OTPs route
+  through this hook instead of a dashboard dropdown).
+- **Telnyx** → Mission Control Portal → the number's messaging settings → point the inbound
+  webhook at the `alfy-sms-inbound` function URL.
+- `src/lib/config.ts`'s `ALFY_PHONE` is already set to the real number.
 - Deploy the site (Vercel/Netlify) with the `PUBLIC_` env vars.
 
 ### Step 4 — Verify (see `docs/alfy-handoff.md` for the exact calls to confirm)
 Composio connect flow (text "connect slack" → get a link → tap it → connected), a connected
-app's read tools returning instantly and its write tools queuing for approval, Twilio
-signature check, Twilio send.
+app's read tools returning instantly and its write tools queuing for approval, Telnyx
+signature check, Telnyx send, phone-login OTP arriving via the Send SMS hook.
 
 ### Step 5 — Smoke test
 Text the number → get a reply + an `Approve:` link → tap it → tap Approve → the action fires

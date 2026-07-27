@@ -6,7 +6,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { executeAction } from '../_shared/executors.ts';
-import { sendSms, TWILIO_FROM_NUMBER } from '../_shared/twilio.ts';
+import { sendSms, TELNYX_FROM_NUMBER } from '../_shared/telnyx.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 		if (phone) {
 			const confirmation = confirmationText ?? `Done — ${row.summary}. — A`;
 			await sendSms(phone.phone_e164, confirmation);
-			await supa.from('messages').insert({ user_id: row.user_id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: confirmation });
+			await supa.from('messages').insert({ user_id: row.user_id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: confirmation });
 		}
 		return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
 	} catch (err) {

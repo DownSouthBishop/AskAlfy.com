@@ -12,7 +12,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { checkAccess } from '../_shared/billing.ts';
-import { sendSms, TWILIO_FROM_NUMBER } from '../_shared/twilio.ts';
+import { sendSms, TELNYX_FROM_NUMBER } from '../_shared/telnyx.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -151,14 +151,14 @@ Deno.serve(async (req) => {
 		if (wantsBrief) {
 			const text = await buildMorningBrief(supa, user.id, timeZone, now);
 			await sendSms(phone.phone_e164, text);
-			await supa.from('messages').insert({ user_id: user.id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: text });
+			await supa.from('messages').insert({ user_id: user.id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
 			await supa.from('users').update({ last_brief_sent_date: today }).eq('id', user.id);
 			results.push({ user_id: user.id, sent: 'brief' });
 		}
 		if (wantsDebrief) {
 			const text = await buildEveningDebrief(supa, user.id, timeZone, now);
 			await sendSms(phone.phone_e164, text);
-			await supa.from('messages').insert({ user_id: user.id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: text });
+			await supa.from('messages').insert({ user_id: user.id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
 			await supa.from('users').update({ last_debrief_sent_date: today }).eq('id', user.id);
 			results.push({ user_id: user.id, sent: 'debrief' });
 		}

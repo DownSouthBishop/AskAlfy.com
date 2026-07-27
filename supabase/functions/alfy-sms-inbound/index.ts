@@ -1,6 +1,10 @@
-// alfy-sms-inbound — Twilio Messaging webhook. The front door.
+// alfy-sms-inbound — Telnyx Messaging webhook. The front door.
 // Fast + queue-shaped: verify, dedupe, route, run the agent, text back. At scale, swap the
 // inline runAgent for an enqueue + worker (see docs/alfy-handoff.md) — the seam is right here.
+//
+// Telnyx posts every messaging event (message.received, message.sent, message.finalized, ...)
+// to the same webhook URL, unlike Twilio's dedicated inbound-only endpoint — only
+// message.received is actionable here; everything else is acknowledged and dropped.
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { runAgent } from '../_shared/agent.ts';
@@ -12,7 +16,7 @@ import {
 	STRIPE_PRICE_ALFY,
 	stripeCreateCheckoutSession,
 } from '../_shared/billing.ts';
-import { sendSms, TWILIO_FROM_NUMBER, validateTwilioSignature } from '../_shared/twilio.ts';
+import { sendSms, TELNYX_FROM_NUMBER, validateTelnyxSignature } from '../_shared/telnyx.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -30,16 +34,20 @@ function syntheticEmail(phoneE164: string) {
 
 Deno.serve(async (req) => {
 	const supa = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-	const form = await req.formData();
-	const params: Record<string, string> = {};
-	for (const [key, value] of form.entries()) params[key] = String(value);
+	const rawBody = await req.text();
 
-	const validSignature = await validateTwilioSignature(req, params);
+	const validSignature = await validateTelnyxSignature(req, rawBody);
 	if (!validSignature) return new Response('invalid signature', { status: 403 });
 
-	const from = params['From'] ?? '';
-	const body = (params['Body'] ?? '').trim();
-	const sid = params['MessageSid'] ?? '';
+	const event = JSON.parse(rawBody);
+	const data = event.data ?? {};
+	if (data.event_type !== 'message.received') return new Response(null, { status: 200 });
+
+	const payload = data.payload ?? {};
+	const from: string = payload.from?.phone_number ?? '';
+	const body: string = (payload.text ?? '').trim();
+	const sid: string = data.id ?? payload.id ?? '';
+	if (!from) return new Response(null, { status: 200 });
 
 	// Carrier-mandated keywords — handle before anything else.
 	const kw = body.toUpperCase();
@@ -76,8 +84,8 @@ Deno.serve(async (req) => {
 		return new Response(null, { status: 204 });
 	}
 
-	// Dedupe: unique twilio_sid means a retry just no-ops here.
-	const { error: dupe } = await supa.from('messages').insert({ user_id: phone.user_id, from_phone: from, direction: 'inbound', body, twilio_sid: sid });
+	// Dedupe: unique provider_msg_id means a retry just no-ops here.
+	const { error: dupe } = await supa.from('messages').insert({ user_id: phone.user_id, from_phone: from, direction: 'inbound', body, provider_msg_id: sid });
 	if (dupe) return new Response(null, { status: 200 }); // already processed
 
 	// Billing gate — trial cap hit, trial expired, or no active subscription. Nothing runs;
@@ -93,7 +101,7 @@ Deno.serve(async (req) => {
 			cancelUrl: `${APP_URL}/app`,
 		});
 		const text = `${paywallCopy(access.reason)}\n${checkoutUrl}`;
-		await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: text });
+		await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
 		await sendSms(from, text);
 		return new Response(null, { status: 200 });
 	}
@@ -117,7 +125,7 @@ Deno.serve(async (req) => {
 		text += `\nApprove: ${APP_URL}/a?t=${token}`;
 	}
 
-	await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TWILIO_FROM_NUMBER, direction: 'outbound', body: text });
+	await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
 	await sendSms(from, text);
 	return new Response(null, { status: 200 });
 });
