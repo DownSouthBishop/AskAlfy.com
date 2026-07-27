@@ -16,6 +16,7 @@ import {
 	STRIPE_PRICE_ALFY,
 	stripeCreateCheckoutSession,
 } from '../_shared/billing.ts';
+import { capNotice, checkDailyCap } from '../_shared/metering.ts';
 import { sendSms, TELNYX_FROM_NUMBER, validateTelnyxSignature } from '../_shared/telnyx.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -106,6 +107,18 @@ Deno.serve(async (req) => {
 		const text = `${paywallCopy(access.reason)}\n${checkoutUrl}`;
 		await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
 		await sendSms(from, text);
+		return new Response(null, { status: 200 });
+	}
+
+	// Daily cap on paid plans (the trial's own caps are handled by checkAccess above).
+	// Over the cap the agent never runs, so the text costs nothing but the count.
+	const capped = await checkDailyCap(supa, phone.user_id, access.plan);
+	if (capped && capped.action !== 'run') {
+		if (capped.action === 'notice') {
+			const text = capNotice(capped.cap);
+			await supa.from('messages').insert({ user_id: phone.user_id, from_phone: TELNYX_FROM_NUMBER, direction: 'outbound', body: text });
+			await sendSms(from, text);
+		}
 		return new Response(null, { status: 200 });
 	}
 
